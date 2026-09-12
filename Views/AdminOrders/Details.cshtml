@@ -1,0 +1,1141 @@
+@model KidsWearStore.Models.Order
+@using KidsWearStore.Models
+
+@{
+    ViewData["Title"] = $"Order #{Model.OrderNumber}";
+
+    var statusClass = Model.Status switch
+    {
+        OrderStatus.Pending => "status-pending",
+        OrderStatus.Confirmed => "status-confirmed",
+        OrderStatus.Processing => "status-processing",
+        OrderStatus.Shipped => "status-shipped",
+        OrderStatus.Delivered => "status-delivered",
+        OrderStatus.Cancelled => "status-cancelled",
+        _ => "status-pending"
+    };
+
+    var isPaid = string.Equals(
+        Model.PaymentStatus,
+        "Paid",
+        StringComparison.OrdinalIgnoreCase);
+
+    var canCancel =
+        Model.Status != OrderStatus.Cancelled &&
+        Model.Status != OrderStatus.Delivered;
+
+    var nextStatus = Model.Status switch
+    {
+        OrderStatus.Pending => OrderStatus.Confirmed,
+        OrderStatus.Confirmed => OrderStatus.Processing,
+        OrderStatus.Processing => OrderStatus.Shipped,
+        OrderStatus.Shipped => OrderStatus.Delivered,
+        _ => (OrderStatus?)null
+    };
+}
+
+<div class="admin-order-details">
+
+    <div class="container-fluid px-3 px-lg-4 py-4">
+
+        <!-- =====================================================
+             HEADER
+             ===================================================== -->
+
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+
+            <div>
+
+                <a asp-action="Index"
+                   class="back-link">
+                    <i class="bi bi-arrow-left"></i>
+                    Back to Orders
+                </a>
+
+                <div class="page-eyebrow mt-3">
+                    ORDER DETAILS
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center gap-3">
+
+                    <h1 class="page-title mb-0">
+                        #@Model.OrderNumber
+                    </h1>
+
+                    <span class="status-badge @statusClass">
+                        @Model.Status
+                    </span>
+
+                </div>
+
+                <p class="page-subtitle">
+                    Placed @Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")
+                </p>
+
+            </div>
+
+
+            <!-- ACTIONS -->
+
+            <div class="d-flex flex-wrap gap-2">
+
+                @if (nextStatus.HasValue)
+                {
+                    <form asp-action="UpdateStatus"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="id"
+                               value="@Model.Id" />
+
+                        <input type="hidden"
+                               name="status"
+                               value="@nextStatus.Value" />
+
+                        <button type="submit"
+                                class="btn btn-dark action-btn">
+
+                            @if (nextStatus.Value == OrderStatus.Confirmed)
+                            {
+                                <i class="bi bi-check2"></i>
+                                <span>Confirm Order</span>
+                            }
+                            else if (nextStatus.Value == OrderStatus.Processing)
+                            {
+                                <i class="bi bi-gear"></i>
+                                <span>Start Processing</span>
+                            }
+                            else if (nextStatus.Value == OrderStatus.Shipped)
+                            {
+                                <i class="bi bi-truck"></i>
+                                <span>Mark Shipped</span>
+                            }
+                            else
+                            {
+                                <i class="bi bi-check-circle"></i>
+                                <span>Mark Delivered</span>
+                            }
+
+                        </button>
+
+                    </form>
+                }
+
+                @if (canCancel)
+                {
+                    <form asp-action="CancelOrder"
+                          method="post"
+                          onsubmit="return confirm('Are you sure you want to cancel this order? Stock will be restored.');">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="id"
+                               value="@Model.Id" />
+
+                        <button type="submit"
+                                class="btn btn-outline-danger action-btn">
+                            <i class="bi bi-x-circle"></i>
+                            Cancel Order
+                        </button>
+
+                    </form>
+                }
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             ALERTS
+             ===================================================== -->
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success border-0 shadow-sm d-flex align-items-center gap-2 mb-4">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>@TempData["Success"]</span>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center gap-2 mb-4">
+                <i class="bi bi-exclamation-circle-fill"></i>
+                <span>@TempData["Error"]</span>
+            </div>
+        }
+
+
+        <!-- =====================================================
+             PAYMENT WARNING
+             ===================================================== -->
+
+        @if (isPaid)
+        {
+            <div class="payment-alert mb-4">
+
+                <div class="payment-alert-icon">
+                    <i class="bi bi-credit-card"></i>
+                </div>
+
+                <div>
+                    <strong>
+                        Payment received
+                    </strong>
+
+                    <p>
+                        This order has been paid. If the order is cancelled,
+                        a refund must be processed through the payment provider.
+                    </p>
+                </div>
+
+            </div>
+        }
+
+        @if (Model.PaymentStatus == "Refund Pending")
+        {
+            <div class="refund-alert mb-4">
+
+                <div class="refund-alert-icon">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+
+                <div>
+                    <strong>
+                        Refund required
+                    </strong>
+
+                    <p>
+                        This order was cancelled after payment.
+                        The payment provider refund still needs to be processed.
+                    </p>
+                </div>
+
+            </div>
+        }
+
+
+        <div class="row g-4">
+
+            <!-- =================================================
+                 LEFT COLUMN
+                 ================================================= -->
+
+            <div class="col-xl-8">
+
+
+                <!-- ORDER ITEMS -->
+
+                <div class="content-card mb-4">
+
+                    <div class="card-heading">
+
+                        <div>
+                            <h5>
+                                Order Items
+                            </h5>
+
+                            <p>
+                                @Model.OrderItems.Sum(i => i.Quantity) item(s)
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="order-items">
+
+                        @if (!Model.OrderItems.Any())
+                        {
+                            <div class="empty-items">
+
+                                <i class="bi bi-inbox"></i>
+
+                                <p>
+                                    This order has no recorded items.
+                                </p>
+
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var item in Model.OrderItems)
+                            {
+                                <div class="order-item">
+
+                                    @if (!string.IsNullOrWhiteSpace(item.Product?.MainImageUrl))
+                                    {
+                                        <img src="@item.Product.MainImageUrl"
+                                             alt="@item.ProductName"
+                                             class="product-image" />
+                                    }
+                                    else
+                                    {
+                                        <div class="product-placeholder">
+                                            <i class="bi bi-image"></i>
+                                        </div>
+                                    }
+
+                                    <div class="product-info">
+
+                                        <div class="product-name">
+                                            @item.ProductName
+                                        </div>
+
+                                        <div class="product-meta">
+                                            ₹@item.UnitPrice.ToString("N2")
+                                            × @item.Quantity
+                                        </div>
+
+                                    </div>
+
+                                    <div class="product-total">
+                                        ₹@item.TotalPrice.ToString("N2")
+                                    </div>
+
+                                </div>
+                            }
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- CUSTOMER -->
+
+                <div class="content-card mb-4">
+
+                    <div class="card-heading">
+
+                        <div>
+                            <h5>
+                                Customer Information
+                            </h5>
+
+                            <p>
+                                Customer contact details
+                            </p>
+                        </div>
+
+                        <div class="heading-icon">
+                            <i class="bi bi-person"></i>
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-grid">
+
+                        <div class="info-block">
+
+                            <span class="info-label">
+                                Full Name
+                            </span>
+
+                            <strong>
+                                @Model.CustomerName
+                            </strong>
+
+                        </div>
+
+
+                        <div class="info-block">
+
+                            <span class="info-label">
+                                Email
+                            </span>
+
+                            <strong>
+                                @Model.CustomerEmail
+                            </strong>
+
+                        </div>
+
+
+                        <div class="info-block">
+
+                            <span class="info-label">
+                                Phone
+                            </span>
+
+                            <strong>
+                                @Model.CustomerPhone
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- SHIPPING -->
+
+                <div class="content-card mb-4">
+
+                    <div class="card-heading">
+
+                        <div>
+                            <h5>
+                                Delivery Address
+                            </h5>
+
+                            <p>
+                                Shipping information
+                            </p>
+                        </div>
+
+                        <div class="heading-icon">
+                            <i class="bi bi-geo-alt"></i>
+                        </div>
+
+                    </div>
+
+
+                    <div class="address-box">
+
+                        <strong>
+                            @Model.CustomerName
+                        </strong>
+
+                        <div>
+                            @Model.ShippingAddress
+                        </div>
+
+                        <div>
+                            @Model.City,
+                            @Model.State
+                            @Model.PostalCode
+                        </div>
+
+                        <div class="mt-2">
+                            <i class="bi bi-telephone"></i>
+                            @Model.CustomerPhone
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 RIGHT COLUMN
+                 ================================================= -->
+
+            <div class="col-xl-4">
+
+
+                <!-- STATUS -->
+
+                <div class="content-card mb-4">
+
+                    <div class="card-heading">
+
+                        <div>
+                            <h5>
+                                Order Status
+                            </h5>
+
+                            <p>
+                                Fulfilment progress
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="status-timeline">
+
+                        @{
+                            var statuses = new[]
+                            {
+                                OrderStatus.Pending,
+                                OrderStatus.Confirmed,
+                                OrderStatus.Processing,
+                                OrderStatus.Shipped,
+                                OrderStatus.Delivered
+                            };
+
+                            var currentIndex =
+                                Array.IndexOf(statuses, Model.Status);
+                        }
+
+                        @for (var i = 0; i < statuses.Length; i++)
+                        {
+                            var timelineStatus = statuses[i];
+
+                            var isComplete =
+                                currentIndex >= 0 && i <= currentIndex;
+
+                            var isCurrent =
+                                timelineStatus == Model.Status;
+
+                            <div class="timeline-item">
+
+                                <div class="timeline-marker @(isComplete ? "complete" : "") @(isCurrent ? "current" : "")">
+
+                                    @if (isComplete)
+                                    {
+                                        <i class="bi bi-check2"></i>
+                                    }
+                                    else
+                                    {
+                                        <span>@(i + 1)</span>
+                                    }
+
+                                </div>
+
+                                <div class="timeline-content">
+
+                                    <strong>
+                                        @timelineStatus
+                                    </strong>
+
+                                    @if (isCurrent)
+                                    {
+                                        <small>
+                                            Current status
+                                        </small>
+                                    }
+
+                                </div>
+
+                            </div>
+                        }
+
+                        @if (Model.Status == OrderStatus.Cancelled)
+                        {
+                            <div class="cancelled-status">
+
+                                <div class="cancelled-status-icon">
+                                    <i class="bi bi-x-circle"></i>
+                                </div>
+
+                                <div>
+                                    <strong>
+                                        Order Cancelled
+                                    </strong>
+
+                                    @if (!string.IsNullOrWhiteSpace(Model.CancelledBy))
+                                    {
+                                        <small>
+                                            Cancelled by @Model.CancelledBy
+                                        </small>
+                                    }
+
+                                </div>
+
+                            </div>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- PAYMENT -->
+
+                <div class="content-card mb-4">
+
+                    <div class="card-heading">
+
+                        <div>
+                            <h5>
+                                Payment
+                            </h5>
+
+                            <p>
+                                Payment information
+                            </p>
+                        </div>
+
+                        <div class="heading-icon">
+                            <i class="bi bi-credit-card"></i>
+                        </div>
+
+                    </div>
+
+
+                    <div class="payment-info">
+
+                        <div class="payment-row">
+
+                            <span>
+                                Method
+                            </span>
+
+                            <strong>
+                                @Model.PaymentMethod
+                            </strong>
+
+                        </div>
+
+
+                        <div class="payment-row">
+
+                            <span>
+                                Status
+                            </span>
+
+                            <strong class="payment-status">
+                                @Model.PaymentStatus
+                            </strong>
+
+                        </div>
+
+
+                        @if (!string.IsNullOrWhiteSpace(Model.RazorpayOrderId))
+                        {
+                            <div class="payment-row">
+
+                                <span>
+                                    Razorpay Order
+                                </span>
+
+                                <strong class="payment-id">
+                                    @Model.RazorpayOrderId
+                                </strong>
+
+                            </div>
+                        }
+
+
+                        @if (!string.IsNullOrWhiteSpace(Model.RazorpayPaymentId))
+                        {
+                            <div class="payment-row">
+
+                                <span>
+                                    Payment ID
+                                </span>
+
+                                <strong class="payment-id">
+                                    @Model.RazorpayPaymentId
+                                </strong>
+
+                            </div>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- ORDER SUMMARY -->
+
+                <div class="content-card">
+
+                    <div class="card-heading">
+
+                        <div>
+                            <h5>
+                                Order Summary
+                            </h5>
+                        </div>
+
+                    </div>
+
+
+                    <div class="summary-lines">
+
+                        <div>
+                            <span>
+                                Subtotal
+                            </span>
+
+                            <strong>
+                                ₹@Model.Subtotal.ToString("N2")
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <span>
+                                Discount
+                            </span>
+
+                            <strong>
+                                -₹@Model.Discount.ToString("N2")
+                            </strong>
+                        </div>
+
+
+                        <div class="summary-total">
+
+                            <span>
+                                Total
+                            </span>
+
+                            <strong>
+                                ₹@Model.TotalAmount.ToString("N2")
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<style>
+
+    .admin-order-details {
+        min-height: calc(100vh - 100px);
+        background: #f7f7f8;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: #52525b;
+        font-size: .88rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .back-link:hover {
+        color: #18181b;
+    }
+
+    .page-eyebrow {
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .14em;
+        color: #71717a;
+        margin-bottom: 7px;
+    }
+
+    .page-title {
+        font-size: clamp(1.9rem, 4vw, 2.7rem);
+        font-weight: 800;
+        letter-spacing: -.04em;
+        color: #18181b;
+    }
+
+    .page-subtitle {
+        color: #71717a;
+        margin: 7px 0 0;
+    }
+
+    .action-btn {
+        min-height: 44px;
+        border-radius: 10px;
+        padding: 9px 15px;
+        font-weight: 700;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-size: .76rem;
+        font-weight: 800;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-confirmed {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-processing {
+        background: #e0e7ff;
+        color: #3730a3;
+    }
+
+    .status-shipped {
+        background: #cffafe;
+        color: #155e75;
+    }
+
+    .status-delivered {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .payment-alert,
+    .refund-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 17px 20px;
+        border-radius: 14px;
+    }
+
+    .payment-alert {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        color: #1e3a8a;
+    }
+
+    .refund-alert {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        color: #92400e;
+    }
+
+    .payment-alert-icon,
+    .refund-alert-icon {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        background: rgba(255,255,255,.7);
+    }
+
+    .payment-alert p,
+    .refund-alert p {
+        margin: 4px 0 0;
+        font-size: .85rem;
+    }
+
+    .content-card {
+        background: #fff;
+        border: 1px solid #e4e4e7;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,.03);
+    }
+
+    .card-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 20px 22px;
+        border-bottom: 1px solid #e4e4e7;
+    }
+
+    .card-heading h5 {
+        margin: 0;
+        font-weight: 800;
+        color: #18181b;
+    }
+
+    .card-heading p {
+        margin: 4px 0 0;
+        font-size: .82rem;
+        color: #71717a;
+    }
+
+    .heading-icon {
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        background: #f4f4f5;
+    }
+
+    .order-items {
+        padding: 5px 22px;
+    }
+
+    .order-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 17px 0;
+        border-bottom: 1px solid #f0f0f1;
+    }
+
+    .order-item:last-child {
+        border-bottom: 0;
+    }
+
+    .product-image,
+    .product-placeholder {
+        width: 66px;
+        height: 66px;
+        flex-shrink: 0;
+        border-radius: 11px;
+        object-fit: cover;
+        background: #f4f4f5;
+    }
+
+    .product-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #a1a1aa;
+        font-size: 1.3rem;
+    }
+
+    .product-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .product-name {
+        font-weight: 750;
+        color: #27272a;
+    }
+
+    .product-meta {
+        margin-top: 4px;
+        color: #71717a;
+        font-size: .82rem;
+    }
+
+    .product-total {
+        font-weight: 800;
+        color: #18181b;
+        white-space: nowrap;
+    }
+
+    .empty-items {
+        padding: 35px 10px;
+        text-align: center;
+        color: #71717a;
+    }
+
+    .empty-items i {
+        font-size: 1.7rem;
+    }
+
+    .empty-items p {
+        margin: 10px 0 0;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: #e4e4e7;
+    }
+
+    .info-block {
+        padding: 19px;
+        background: #fff;
+    }
+
+    .info-label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: .72rem;
+        font-weight: 700;
+        color: #a1a1aa;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+    }
+
+    .info-block strong {
+        display: block;
+        color: #27272a;
+        word-break: break-word;
+    }
+
+    .address-box {
+        padding: 21px 22px;
+        line-height: 1.75;
+        color: #52525b;
+    }
+
+    .address-box strong {
+        color: #18181b;
+    }
+
+    .status-timeline {
+        padding: 20px 22px;
+    }
+
+    .timeline-item {
+        display: flex;
+        gap: 13px;
+        position: relative;
+        padding-bottom: 22px;
+    }
+
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+
+    .timeline-item:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        left: 15px;
+        top: 32px;
+        width: 2px;
+        height: calc(100% - 10px);
+        background: #e4e4e7;
+    }
+
+    .timeline-marker {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #f4f4f5;
+        color: #a1a1aa;
+        font-size: .75rem;
+        font-weight: 800;
+        position: relative;
+        z-index: 1;
+    }
+
+    .timeline-marker.complete {
+        background: #18181b;
+        color: #fff;
+    }
+
+    .timeline-marker.current {
+        box-shadow: 0 0 0 4px #e4e4e7;
+    }
+
+    .timeline-content {
+        padding-top: 5px;
+    }
+
+    .timeline-content strong {
+        display: block;
+        color: #27272a;
+    }
+
+    .timeline-content small {
+        color: #71717a;
+        font-size: .74rem;
+    }
+
+    .cancelled-status {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-top: 22px;
+        padding-top: 20px;
+        border-top: 1px solid #e4e4e7;
+    }
+
+    .cancelled-status-icon {
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9px;
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .cancelled-status strong,
+    .cancelled-status small {
+        display: block;
+    }
+
+    .cancelled-status small {
+        color: #71717a;
+        margin-top: 2px;
+    }
+
+    .payment-info {
+        padding: 10px 22px;
+    }
+
+    .payment-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 13px 0;
+        border-bottom: 1px solid #f0f0f1;
+    }
+
+    .payment-row:last-child {
+        border-bottom: 0;
+    }
+
+    .payment-row > span {
+        color: #71717a;
+        font-size: .82rem;
+    }
+
+    .payment-row > strong {
+        text-align: right;
+        color: #27272a;
+        font-size: .82rem;
+    }
+
+    .payment-id {
+        max-width: 180px;
+        overflow-wrap: anywhere;
+    }
+
+    .summary-lines {
+        padding: 10px 22px 20px;
+    }
+
+    .summary-lines > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 12px 0;
+        color: #71717a;
+    }
+
+    .summary-lines strong {
+        color: #27272a;
+    }
+
+    .summary-total {
+        margin-top: 8px;
+        padding-top: 17px !important;
+        border-top: 1px solid #e4e4e7;
+        color: #18181b !important;
+        font-size: 1.05rem;
+    }
+
+    .summary-total strong {
+        font-size: 1.2rem;
+    }
+
+    @@media (max-width: 767px) {
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .order-item {
+            align-items: flex-start;
+        }
+
+        .product-total {
+            margin-left: auto;
+        }
+
+        .action-btn {
+            flex: 1;
+        }
+
+    }
+
+</style>

@@ -1,0 +1,139 @@
+@model IEnumerable<KidsWearStore.Models.Order>
+
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<div class="container py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold">My Orders</h1>
+            <p class="text-muted mb-0">
+                View your order history and order status.
+            </p>
+        </div>
+
+        <a asp-controller="Products"
+           asp-action="Index"
+           class="btn btn-outline-dark">
+            Continue Shopping
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+
+                <div class="display-3 mb-3"></div>
+
+                <h3>No orders yet</h3>
+
+                <p class="text-muted">
+                    Your orders will appear here after you make a purchase.
+                </p>
+
+                <a asp-controller="Products"
+                   asp-action="Index"
+                   class="btn btn-primary">
+                    Start Shopping
+                </a>
+
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+
+            @foreach (var order in Model)
+            {
+                <div class="col-12">
+
+                    <div class="card border-0 shadow-sm">
+
+                        <div class="card-body p-4">
+
+                            <div class="row align-items-center g-3">
+
+                                <div class="col-md-3">
+                                    <small class="text-muted d-block">
+                                        Order Number
+                                    </small>
+
+                                    <strong>
+                                        @order.OrderNumber
+                                    </strong>
+                                </div>
+
+                                <div class="col-md-2">
+                                    <small class="text-muted d-block">
+                                        Date
+                                    </small>
+
+                                    <strong>
+                                        @order.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")
+                                    </strong>
+                                </div>
+
+                                <div class="col-md-2">
+                                    <small class="text-muted d-block">
+                                        Items
+                                    </small>
+
+                                    <strong>
+                                        @order.OrderItems.Sum(i => i.Quantity)
+                                    </strong>
+                                </div>
+
+                                <div class="col-md-2">
+                                    <small class="text-muted d-block">
+                                        Total
+                                    </small>
+
+                                    <strong>
+                                        ₹@order.TotalAmount.ToString("N2")
+                                    </strong>
+                                </div>
+
+                                <div class="col-md-3 text-md-end">
+
+                                    <span class="badge bg-secondary mb-2">
+                                        @order.Status
+                                    </span>
+
+                                    <br />
+
+                                    <span class="badge
+                                        @(order.PaymentStatus == "Paid"
+                                            ? "bg-success"
+                                            : order.PaymentStatus == "Pending"
+                                                ? "bg-warning text-dark"
+                                                : "bg-secondary")">
+                                        Payment: @order.PaymentStatus
+                                    </span>
+
+                                    <div class="mt-3">
+                                        <a asp-action="OrderDetails"
+                                           asp-route-orderNumber="@order.OrderNumber"
+                                           class="btn btn-sm btn-dark">
+                                            View Details
+                                        </a>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>

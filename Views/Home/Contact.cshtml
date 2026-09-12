@@ -1,0 +1,210 @@
+@{
+    ViewData["Title"] = "Contact Us";
+}
+
+<style>
+    .contact-page {
+        background: #fff;
+    }
+
+    .contact-hero {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .contact-eyebrow {
+        letter-spacing: .14em;
+        font-size: .75rem;
+    }
+
+    .contact-card {
+        border: 1px solid #e9e9e9;
+        border-radius: 22px;
+        padding: 30px;
+        height: 100%;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .contact-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(0,0,0,.06);
+    }
+
+    .contact-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        background: #f5f5f5;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+    }
+
+    .support-panel {
+        border-radius: 24px;
+        background: #f7f7f7;
+    }
+
+    .support-panel .support-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        background: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1.35rem;
+    }
+
+    @@media (max-width: 767.98px) {
+        .contact-page {
+            padding-top: 2rem !important;
+        }
+
+        .contact-card {
+            padding: 24px;
+        }
+    }
+</style>
+
+<div class="contact-page py-5">
+    <div class="container">
+
+        <!-- HERO -->
+        <section class="contact-hero text-center mb-5">
+
+            <div class="contact-eyebrow text-uppercase fw-semibold text-muted">
+                CrisKidsWear
+            </div>
+
+            <h1 class="display-5 fw-bold mt-3">
+                Contact Us
+            </h1>
+
+            <p class="lead text-muted mt-3 mb-0">
+                Have a question about an order, product, payment, delivery,
+                or anything else? We're here to help.
+            </p>
+
+        </section>
+
+
+        <!-- CONTACT OPTIONS -->
+        <section class="row g-4 mx-auto" style="max-width: 1000px;">
+
+            <!-- EMAIL -->
+            <div class="col-md-6">
+
+                <div class="contact-card">
+
+                    <div class="contact-icon">
+                        <i class="bi bi-envelope"></i>
+                    </div>
+
+                    <h2 class="h5 fw-bold mt-4">
+                        Email
+                    </h2>
+
+                    <p class="text-muted mt-3 mb-3">
+                        For customer support and order enquiries, email us at:
+                    </p>
+
+                    <a href="mailto:sanjaynadar205@gmail.com"
+                       class="fw-semibold text-dark text-decoration-none">
+                        sanjaynadar205@gmail.com
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- PHONE -->
+            <div class="col-md-6">
+
+                <div class="contact-card">
+
+                    <div class="contact-icon">
+                        <i class="bi bi-telephone"></i>
+                    </div>
+
+                    <h2 class="h5 fw-bold mt-4">
+                        Phone
+                    </h2>
+
+                    <p class="text-muted mt-3 mb-3">
+                        For customer support and order-related enquiries:
+                    </p>
+
+                    <a href="tel:+918983166045"
+                       class="fw-semibold text-dark text-decoration-none">
+                        +91 89831 66045
+                    </a>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- CUSTOMER SUPPORT -->
+        <section class="support-panel p-4 p-md-5 mt-4 mx-auto"
+                 style="max-width: 1000px;">
+
+            <div class="d-flex align-items-start gap-3">
+
+                <div class="support-icon">
+                    <i class="bi bi-headset"></i>
+                </div>
+
+                <div>
+
+                    <div class="contact-eyebrow text-uppercase fw-semibold text-muted">
+                        Customer care
+                    </div>
+
+                    <h2 class="h4 fw-bold mt-2">
+                        We're here to help
+                    </h2>
+
+                    <p class="text-muted mb-0 mt-2">
+                        If you have already placed an order, please keep your
+                        order number available when contacting us. This helps
+                        us assist you more quickly.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="mt-4 d-flex flex-wrap gap-2">
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a asp-controller="Orders"
+                       asp-action="Index"
+                       class="btn btn-dark rounded-pill px-4">
+                        View My Orders
+                    </a>
+                }
+
+                <a href="mailto:sanjaynadar205@gmail.com"
+                   class="btn btn-outline-dark rounded-pill px-4">
+                    Email Support
+                </a>
+
+                <a href="tel:+918983166045"
+                   class="btn btn-outline-dark rounded-pill px-4">
+                    Call Support
+                </a>
+
+            </div>
+
+        </section>
+
+    </div>
+</div>

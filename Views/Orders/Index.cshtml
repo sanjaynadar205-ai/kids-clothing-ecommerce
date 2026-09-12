@@ -1,0 +1,443 @@
+@model IEnumerable<KidsWearStore.Models.Order>
+
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<div class="orders-page">
+
+    <div class="orders-header">
+        <div>
+            <span class="eyebrow">ACCOUNT</span>
+            <h1>My Orders</h1>
+            <p>View your recent purchases and track your orders.</p>
+        </div>
+
+        <a asp-controller="Products"
+           asp-action="Index"
+           class="btn btn-dark">
+            <i class="bi bi-bag"></i>
+            Continue Shopping
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-orders">
+            <div class="empty-icon">
+                <i class="bi bi-box-seam"></i>
+            </div>
+
+            <h2>No orders yet</h2>
+
+            <p>
+                You haven't placed any orders yet.
+                Start shopping to see your orders here.
+            </p>
+
+            <a asp-controller="Products"
+               asp-action="Index"
+               class="btn btn-dark">
+                Browse Products
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="orders-list">
+
+            @foreach (var order in Model)
+            {
+                var firstItem = order.OrderItems.FirstOrDefault();
+                var itemCount = order.OrderItems.Sum(x => x.Quantity);
+
+                <div class="order-card">
+
+                    <div class="order-card-top">
+
+                        <div>
+                            <div class="order-number">
+                                Order #@order.OrderNumber
+                            </div>
+
+                            <div class="order-date">
+                                Placed on
+                                @order.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")
+                            </div>
+                        </div>
+
+                        <span class="status-badge status-@order.Status.ToString().ToLowerInvariant()">
+                            @order.Status
+                        </span>
+
+                    </div>
+
+                    <div class="order-card-middle">
+
+                        <div class="product-preview">
+
+                            @if (firstItem?.Product != null &&
+                                 !string.IsNullOrWhiteSpace(firstItem.Product.MainImageUrl))
+                            {
+                                <img src="@firstItem.Product.MainImageUrl"
+                                     alt="@firstItem.Product.Name" />
+                            }
+                            else
+                            {
+                                <div class="product-placeholder">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                            }
+
+                        </div>
+
+                        <div class="order-summary">
+
+                            <h3>
+                                @(firstItem?.Product?.Name ?? "Order items")
+                            </h3>
+
+                            @if (order.OrderItems.Count > 1)
+                            {
+                                <p>
+                                    + @(order.OrderItems.Count - 1) more
+                                    @(order.OrderItems.Count - 1 == 1 ? "item" : "items")
+                                </p>
+                            }
+                            else
+                            {
+                                <p>
+                                    @itemCount @(itemCount == 1 ? "item" : "items")
+                                </p>
+                            }
+
+                        </div>
+
+                        <div class="order-price">
+                            <span>Total</span>
+                            <strong>₹@order.TotalAmount.ToString("N2")</strong>
+                        </div>
+
+                    </div>
+
+                    <div class="order-card-bottom">
+
+                        <div class="payment-info">
+                            <i class="bi bi-credit-card"></i>
+                            <span>@order.PaymentMethod</span>
+
+                            @if (order.PaymentStatus == "Paid")
+                            {
+                                <span class="payment-status paid">
+                                    Paid
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="payment-status">
+                                    @order.PaymentStatus
+                                </span>
+                            }
+                        </div>
+
+                        <a asp-controller="Orders"
+                           asp-action="Details"
+                           asp-route-id="@order.Id"
+                           class="btn btn-outline-dark">
+                            View Order
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+</div>
+
+<style>
+    .orders-page {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 48px 20px 80px;
+    }
+
+    .orders-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 36px;
+    }
+
+    .eyebrow {
+        display: inline-block;
+        margin-bottom: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.8px;
+        color: #777;
+    }
+
+    .orders-header h1 {
+        margin: 0;
+        font-size: clamp(32px, 5vw, 46px);
+        font-weight: 700;
+        letter-spacing: -1.5px;
+    }
+
+    .orders-header p {
+        margin: 10px 0 0;
+        color: #6b7280;
+        font-size: 15px;
+    }
+
+    .orders-list {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .order-card {
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 18px;
+        overflow: hidden;
+        transition: box-shadow .2s ease, transform .2s ease;
+    }
+
+    .order-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 35px rgba(0,0,0,.07);
+    }
+
+    .order-card-top {
+        padding: 20px 22px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .order-number {
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    .order-date {
+        margin-top: 5px;
+        color: #777;
+        font-size: 13px;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .status-confirmed,
+    .status-processing {
+        background: #eef4ff;
+        color: #2457a6;
+    }
+
+    .status-shipped {
+        background: #f2efff;
+        color: #5b42a6;
+    }
+
+    .status-delivered {
+        background: #edf8f1;
+        color: #237343;
+    }
+
+    .status-cancelled {
+        background: #fff0f0;
+        color: #b42318;
+    }
+
+    .order-card-middle {
+        padding: 22px;
+        display: grid;
+        grid-template-columns: 76px 1fr auto;
+        align-items: center;
+        gap: 18px;
+    }
+
+    .product-preview {
+        width: 76px;
+        height: 88px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #f6f6f6;
+        border: 1px solid #eeeeee;
+    }
+
+    .product-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-size: 24px;
+    }
+
+    .order-summary h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .order-summary p {
+        margin: 7px 0 0;
+        color: #777;
+        font-size: 14px;
+    }
+
+    .order-price {
+        text-align: right;
+    }
+
+    .order-price span {
+        display: block;
+        color: #777;
+        font-size: 12px;
+        margin-bottom: 4px;
+    }
+
+    .order-price strong {
+        font-size: 18px;
+    }
+
+    .order-card-bottom {
+        padding: 17px 22px;
+        background: #fafafa;
+        border-top: 1px solid #eeeeee;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .payment-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #555;
+        font-size: 13px;
+    }
+
+    .payment-info i {
+        font-size: 16px;
+    }
+
+    .payment-status {
+        padding: 4px 8px;
+        border-radius: 6px;
+        background: #eeeeee;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .payment-status.paid {
+        background: #eaf7ee;
+        color: #267342;
+    }
+
+    .empty-orders {
+        max-width: 560px;
+        margin: 70px auto;
+        padding: 55px 25px;
+        text-align: center;
+        border: 1px solid #e8e8e8;
+        border-radius: 20px;
+        background: #fff;
+    }
+
+    .empty-icon {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #f5f5f5;
+        color: #333;
+        font-size: 28px;
+    }
+
+    .empty-orders h2 {
+        margin: 0;
+        font-size: 24px;
+    }
+
+    .empty-orders p {
+        max-width: 420px;
+        margin: 10px auto 24px;
+        color: #777;
+        line-height: 1.7;
+    }
+
+    .btn {
+        border-radius: 10px;
+        padding: 10px 16px;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 700px) {
+        .orders-page {
+            padding: 30px 15px 60px;
+        }
+
+        .orders-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .order-card-middle {
+            grid-template-columns: 64px 1fr;
+        }
+
+        .product-preview {
+            width: 64px;
+            height: 76px;
+        }
+
+        .order-price {
+            grid-column: 2;
+            text-align: left;
+        }
+
+        .order-card-bottom {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .payment-info {
+            justify-content: flex-start;
+        }
+
+        .order-card-bottom .btn {
+            width: 100%;
+        }
+    }
+</style>

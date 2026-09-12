@@ -1,0 +1,87 @@
+@{
+    ViewData["Title"] = "Pricing & Payment";
+}
+
+<div class="container py-5">
+    <div class="mx-auto" style="max-width: 900px;">
+        <div class="mb-5">
+            <span class="text-uppercase small fw-semibold text-muted">CrisKidsWear</span>
+            <h1 class="display-5 fw-bold mt-2">Pricing & Payment</h1>
+            <p class="text-muted mb-0">
+                Clear information about product pricing, shipping charges, and
+                available payment methods.
+            </p>
+        </div>
+
+        <div class="mb-4">
+            <h2 class="h4 fw-bold">Product Pricing</h2>
+            <p class="text-muted">
+                Prices displayed on CrisKidsWear are shown in Indian Rupees
+                (INR). Product prices may change from time to time.
+            </p>
+        </div>
+
+        <div class="mb-4">
+            <h2 class="h4 fw-bold">Discounts and Offers</h2>
+            <p class="text-muted">
+                Promotional prices and discounts are displayed on applicable
+                products. Offers may be subject to specific conditions,
+                availability, and limited promotional periods.
+            </p>
+        </div>
+
+        <div class="mb-4">
+            <h2 class="h4 fw-bold">Shipping Charges</h2>
+            <p class="text-muted">
+                Any applicable shipping charge is displayed during checkout
+                before the order is placed.
+            </p>
+        </div>
+
+        <div class="mb-4">
+            <h2 class="h4 fw-bold">Payment Methods</h2>
+
+            <div class="row g-3 mt-1">
+                <div class="col-md-6">
+                    <div class="border rounded-4 p-4 h-100">
+                        <h3 class="h5 fw-bold">Cash on Delivery</h3>
+                        <p class="text-muted mb-0">
+                            Pay for eligible orders when they are delivered.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="border rounded-4 p-4 h-100">
+                        <h3 class="h5 fw-bold">Online Payment</h3>
+                        <p class="text-muted mb-0">
+                            Pay securely through the online payment gateway
+                            available at checkout.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <h2 class="h4 fw-bold">Order Total</h2>
+            <p class="text-muted">
+                The final amount payable is displayed on the checkout page
+                before you confirm your order.
+            </p>
+        </div>
+
+        <div class="border rounded-4 p-4 bg-light">
+            <h2 class="h5 fw-bold">Payment questions?</h2>
+            <p class="text-muted mb-3">
+                Contact us if you need assistance with pricing or payment.
+            </p>
+
+            <a asp-controller="Home"
+               asp-action="Contact"
+               class="btn btn-dark rounded-pill px-4">
+                Contact Us
+            </a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,493 @@
+@model KidsWearStore.Models.Product
+
+@{
+    ViewData["Title"] = "Add Product";
+}
+
+<div class="container py-5">
+
+    <div class="mb-4">
+
+        <a asp-action="Manage"
+           class="text-decoration-none">
+            ← Back to Products
+        </a>
+
+        <h1 class="fw-bold mt-3 mb-1">
+             Add New Product
+        </h1>
+
+        <p class="text-muted">
+            Add a new product to KidsWearStore.
+        </p>
+
+    </div>
+
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body p-4 p-md-5">
+
+            <form asp-action="Create"
+                  method="post"
+                  enctype="multipart/form-data">
+
+                @Html.AntiForgeryToken()
+
+
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger">
+                </div>
+
+
+                <!-- BASIC INFORMATION -->
+
+                <h4 class="fw-bold mb-3">
+                     Basic Information
+                </h4>
+
+                <div class="row g-3">
+
+                    <div class="col-md-8">
+
+                        <label asp-for="Name"
+                               class="form-label fw-semibold">
+                            Product Name
+                        </label>
+
+                        <input asp-for="Name"
+                               class="form-control"
+                               placeholder="Example: Girls Pink Summer Frock" />
+
+                        <span asp-validation-for="Name"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <label asp-for="CategoryId"
+                               class="form-label fw-semibold">
+                            Category
+                        </label>
+
+                        <select asp-for="CategoryId"
+                                asp-items="ViewBag.Categories"
+                                class="form-select">
+
+                            <option value="">
+                                -- Select Category --
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="CategoryId"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-12">
+
+                        <label asp-for="ShortDescription"
+                               class="form-label fw-semibold">
+                            Short Description
+                        </label>
+
+                        <input asp-for="ShortDescription"
+                               class="form-control"
+                               placeholder="Short product description" />
+
+                        <span asp-validation-for="ShortDescription"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-12">
+
+                        <label asp-for="Description"
+                               class="form-label fw-semibold">
+                            Full Description
+                        </label>
+
+                        <textarea asp-for="Description"
+                                  class="form-control"
+                                  rows="5"
+                                  placeholder="Describe the product in detail...">
+                        </textarea>
+
+                        <span asp-validation-for="Description"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <hr class="my-4" />
+
+
+                <!-- PRICING -->
+
+                <h4 class="fw-bold mb-3">
+                     Pricing
+                </h4>
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+
+                        <label asp-for="Price"
+                               class="form-label fw-semibold">
+                            Original Price (₹)
+                        </label>
+
+                        <input asp-for="Price"
+                               class="form-control"
+                               type="number"
+                               step="0.01"
+                               min="0"
+                               placeholder="599" />
+
+                        <span asp-validation-for="Price"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <label asp-for="DiscountPrice"
+                               class="form-label fw-semibold">
+                            Discount Price (₹)
+                        </label>
+
+                        <input asp-for="DiscountPrice"
+                               class="form-control"
+                               type="number"
+                               step="0.01"
+                               min="0"
+                               placeholder="499" />
+
+                        <span asp-validation-for="DiscountPrice"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <label asp-for="DiscountPercentage"
+                               class="form-label fw-semibold">
+                            Discount (%)
+                        </label>
+
+                        <input asp-for="DiscountPercentage"
+                               class="form-control"
+                               type="number"
+                               step="0.01"
+                               min="0"
+                               max="100"
+                               placeholder="20" />
+
+                        <span asp-validation-for="DiscountPercentage"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <hr class="my-4" />
+
+
+                <!-- INVENTORY -->
+
+                <h4 class="fw-bold mb-3">
+                     Inventory
+                </h4>
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+
+                        <label asp-for="StockQuantity"
+                               class="form-label fw-semibold">
+                            Stock Quantity
+                        </label>
+
+                        <input asp-for="StockQuantity"
+                               class="form-control"
+                               type="number"
+                               min="0"
+                               placeholder="50" />
+
+                        <span asp-validation-for="StockQuantity"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <label asp-for="Sizes"
+                               class="form-label fw-semibold">
+                            Sizes
+                        </label>
+
+                        <input asp-for="Sizes"
+                               class="form-control"
+                               placeholder="2Y, 4Y, 6Y, 8Y" />
+
+                        <div class="form-text">
+                            Separate sizes with commas.
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <label asp-for="Colors"
+                               class="form-label fw-semibold">
+                            Colors
+                        </label>
+
+                        <input asp-for="Colors"
+                               class="form-control"
+                               placeholder="Pink, Blue, White" />
+
+                        <div class="form-text">
+                            Separate colors with commas.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <hr class="my-4" />
+
+
+                <!-- IMAGE UPLOAD -->
+
+                <h4 class="fw-bold mb-3">
+                     Product Image
+                </h4>
+
+                <div class="row">
+
+                    <div class="col-md-8">
+
+                        <label for="imageFile"
+                               class="form-label fw-semibold">
+                            Choose Product Image
+                        </label>
+
+                        <input type="file"
+                               id="imageFile"
+                               name="imageFile"
+                               class="form-control"
+                               accept=".jpg,.jpeg,.png,.webp"
+                               onchange="previewImage(event)" />
+
+                        <div class="form-text">
+                            JPG, JPEG, PNG or WEBP.
+                            Maximum size: 5 MB.
+                        </div>
+
+                        <span asp-validation-for="MainImageUrl"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <div class="col-md-4 mt-3 mt-md-0">
+
+                        <div id="imagePreviewContainer"
+                             class="border rounded p-2 text-center"
+                             style="display:none;">
+
+                            <img id="imagePreview"
+                                 src="#"
+                                 alt="Image Preview"
+                                 style="width:100%;height:200px;object-fit:contain;" />
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <hr class="my-4" />
+
+
+                <!-- PRODUCT SETTINGS -->
+
+                <h4 class="fw-bold mb-3">
+                    ⭐ Product Settings
+                </h4>
+
+                <div class="row g-3">
+
+                    <div class="col-md-3">
+
+                        <div class="form-check">
+
+                            <input asp-for="IsFeatured"
+                                   class="form-check-input" />
+
+                            <label asp-for="IsFeatured"
+                                   class="form-check-label">
+                                ⭐ Featured
+                            </label>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-3">
+
+                        <div class="form-check">
+
+                            <input asp-for="IsNewArrival"
+                                   class="form-check-input" />
+
+                            <label asp-for="IsNewArrival"
+                                   class="form-check-label">
+                                 New Arrival
+                            </label>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-3">
+
+                        <div class="form-check">
+
+                            <input asp-for="IsBestSeller"
+                                   class="form-check-input" />
+
+                            <label asp-for="IsBestSeller"
+                                   class="form-check-label">
+                                 Best Seller
+                            </label>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-3">
+
+                        <div class="form-check">
+
+                            <input asp-for="IsActive"
+                                   class="form-check-input"
+                                   checked />
+
+                            <label asp-for="IsActive"
+                                   class="form-check-label">
+                                 Active
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- BUTTONS -->
+
+                <div class="d-flex gap-2 mt-5">
+
+                    <button type="submit"
+                            class="btn btn-primary px-4">
+                         Save Product
+                    </button>
+
+                    <a asp-action="Manage"
+                       class="btn btn-outline-secondary px-4">
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync(
+            "_ValidationScriptsPartial");
+    }
+
+
+    <script>
+
+        function previewImage(event) {
+
+            const file =
+                event.target.files[0];
+
+            const preview =
+                document.getElementById(
+                    "imagePreview");
+
+            const container =
+                document.getElementById(
+                    "imagePreviewContainer");
+
+
+            if (file) {
+
+                const reader =
+                    new FileReader();
+
+                reader.onload =
+                    function (e) {
+
+                        preview.src =
+                            e.target.result;
+
+                        container.style.display =
+                            "block";
+                    };
+
+                reader.readAsDataURL(file);
+
+            }
+            else {
+
+                container.style.display =
+                    "none";
+
+                preview.src = "#";
+            }
+        }
+
+    </script>
+}

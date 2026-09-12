@@ -1,0 +1,64 @@
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body text-center p-5">
+
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light mb-4"
+                         style="width:80px;height:80px;">
+                        <i class="bi bi-shield-lock fs-1 text-dark"></i>
+                    </div>
+
+                    <div class="text-uppercase small fw-semibold text-muted mb-2"
+                         style="letter-spacing:.12em;">
+                        Access restricted
+                    </div>
+
+                    <h1 class="fw-bold mb-3">
+                        You don't have permission to access this page
+                    </h1>
+
+                    <p class="text-muted mb-4">
+                        This area is restricted to authorized administrators.
+                        Please sign in with an Admin account to continue.
+                    </p>
+
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+
+                        <a asp-controller="Home"
+                           asp-action="Index"
+                           class="btn btn-dark px-4">
+                            <i class="bi bi-house me-2"></i>
+                            Back to Home
+                        </a>
+
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <a asp-controller="Account"
+                               asp-action="Profile"
+                               class="btn btn-outline-dark px-4">
+                                <i class="bi bi-person me-2"></i>
+                                My Account
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account"
+                               asp-action="Login"
+                               class="btn btn-outline-dark px-4">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>
+                                Sign In
+                            </a>
+                        }
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

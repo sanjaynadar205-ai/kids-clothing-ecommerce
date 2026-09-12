@@ -1,0 +1,1118 @@
+@model IEnumerable<KidsWearStore.Models.CartItem>
+
+@{
+    ViewData["Title"] = "Shopping Cart";
+
+    var items = Model
+        .Where(x => x.Product != null)
+        .ToList();
+
+    decimal subtotal = 0m;
+
+    foreach (var item in items)
+    {
+        var product = item.Product!;
+
+        decimal price;
+
+        if (product.DiscountPrice.HasValue &&
+            product.DiscountPrice.Value > 0 &&
+            product.DiscountPrice.Value < product.Price)
+        {
+            price = product.DiscountPrice.Value;
+        }
+        else if (product.DiscountPercentage > 0)
+        {
+            price = product.Price -
+                     (product.Price *
+                      product.DiscountPercentage / 100m);
+        }
+        else
+        {
+            price = product.Price;
+        }
+
+        subtotal += price * item.Quantity;
+    }
+
+    decimal shipping =
+        subtotal > 0 && subtotal < 999
+            ? 49m
+            : 0m;
+
+    decimal total =
+        subtotal + shipping;
+
+    decimal freeShippingRemaining =
+        subtotal < 999
+            ? 999m - subtotal
+            : 0m;
+}
+
+<style>
+
+    .cart-page {
+        background: #faf9fa;
+        min-height: 75vh;
+        padding: 42px 0 80px;
+    }
+
+    .cart-container {
+        max-width: 1240px;
+        margin: 0 auto;
+    }
+
+    .cart-breadcrumb {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: #77727a;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        margin-bottom: 20px;
+    }
+
+    .cart-breadcrumb:hover {
+        color: #f43f78;
+    }
+
+    .cart-heading {
+        margin-bottom: 30px;
+    }
+
+    .cart-heading h1 {
+        margin: 0;
+        color: #18161a;
+        font-size: clamp(28px, 4vw, 40px);
+        font-weight: 700;
+        letter-spacing: -1.2px;
+    }
+
+    .cart-heading p {
+        margin: 7px 0 0;
+        color: #77727a;
+        font-size: 14px;
+    }
+
+    .cart-alert {
+        border: none;
+        border-radius: 12px;
+        font-size: 13px;
+        box-shadow: 0 5px 18px rgba(0,0,0,.04);
+    }
+
+    /* ITEMS */
+
+    .cart-items-card {
+        background: #fff;
+        border: 1px solid #ece8eb;
+        border-radius: 18px;
+        overflow: hidden;
+    }
+
+    .cart-items-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #ece8eb;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+    }
+
+    .cart-items-header h5 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: #18161a;
+    }
+
+    .cart-count {
+        color: #77727a;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .cart-item {
+        padding: 22px 24px;
+        border-bottom: 1px solid #f0edef;
+        transition: background .2s ease;
+    }
+
+    .cart-item:last-child {
+        border-bottom: none;
+    }
+
+    .cart-item:hover {
+        background: #fffafb;
+    }
+
+    .cart-product-image {
+        width: 112px;
+        height: 128px;
+        border-radius: 13px;
+        object-fit: cover;
+        background: #f6f4f5;
+        display: block;
+    }
+
+    .cart-image-placeholder {
+        width: 112px;
+        height: 128px;
+        border-radius: 13px;
+        background: #f8f6f7;
+        color: #aaa5aa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+    }
+
+    .cart-product-name {
+        color: #18161a;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.35;
+        text-decoration: none;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .cart-product-name:hover {
+        color: #f43f78;
+    }
+
+    .cart-category {
+        color: #88838a;
+        font-size: 12px;
+        margin-bottom: 13px;
+    }
+
+    .cart-price {
+        color: #18161a;
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    .cart-old-price {
+        color: #aaa5aa;
+        font-size: 12px;
+        text-decoration: line-through;
+        margin-left: 7px;
+    }
+
+    .cart-discount {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 7px;
+        padding: 3px 7px;
+        border-radius: 5px;
+        background: #fff1f5;
+        color: #f43f78;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .stock-label {
+        margin-top: 8px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .stock-label.in-stock {
+        color: #16845b;
+    }
+
+    .stock-label.low-stock {
+        color: #d97706;
+    }
+
+    /* QUANTITY */
+
+    .quantity-label {
+        color: #77727a;
+        font-size: 11px;
+        font-weight: 600;
+        margin-bottom: 7px;
+    }
+
+    .quantity-control {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #e3dfe2;
+        border-radius: 9px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .quantity-control button {
+        width: 34px;
+        height: 36px;
+        border: none;
+        background: #fff;
+        color: #343138;
+        font-size: 17px;
+        cursor: pointer;
+        transition: all .2s ease;
+    }
+
+    .quantity-control button:hover {
+        background: #fff1f5;
+        color: #f43f78;
+    }
+
+    .quantity-control span {
+        min-width: 34px;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 700;
+        color: #18161a;
+    }
+
+    /* ITEM TOTAL */
+
+    .item-total-label {
+        color: #77727a;
+        font-size: 11px;
+        margin-bottom: 3px;
+    }
+
+    .item-total {
+        color: #18161a;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .remove-button {
+        border: none;
+        background: transparent;
+        color: #99949a;
+        padding: 4px 0;
+        font-size: 12px;
+        font-weight: 600;
+        transition: color .2s ease;
+    }
+
+    .remove-button:hover {
+        color: #dc3545;
+    }
+
+    /* SUMMARY */
+
+    .summary-card {
+        background: #fff;
+        border: 1px solid #ece8eb;
+        border-radius: 18px;
+        padding: 25px;
+        position: sticky;
+        top: 92px;
+    }
+
+    .summary-card h4 {
+        color: #18161a;
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0 0 22px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 14px;
+        color: #77727a;
+        font-size: 13px;
+    }
+
+    .summary-row strong {
+        color: #343138;
+    }
+
+    .free-shipping {
+        color: #16845b !important;
+        font-weight: 700;
+    }
+
+    .shipping-progress {
+        margin: 18px 0;
+        padding: 14px;
+        border-radius: 11px;
+        background: #fff6f8;
+    }
+
+    .shipping-progress p {
+        color: #5d5860;
+        font-size: 11px;
+        line-height: 1.55;
+        margin: 0 0 9px;
+    }
+
+    .shipping-progress strong {
+        color: #f43f78;
+    }
+
+    .shipping-track {
+        height: 5px;
+        border-radius: 20px;
+        background: #f0dce2;
+        overflow: hidden;
+    }
+
+    .shipping-progress-bar {
+        height: 100%;
+        border-radius: 20px;
+        background: #f43f78;
+    }
+
+    .summary-divider {
+        border: 0;
+        border-top: 1px solid #ece8eb;
+        margin: 20px 0;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 21px;
+    }
+
+    .total-label {
+        color: #18161a;
+        font-size: 17px;
+        font-weight: 700;
+    }
+
+    .total-price {
+        color: #f43f78;
+        font-size: 21px;
+        font-weight: 700;
+    }
+
+    .checkout-button {
+        width: 100%;
+        border: none;
+        border-radius: 11px;
+        background: #f43f78;
+        color: #fff;
+        padding: 13px 18px;
+        font-size: 14px;
+        font-weight: 700;
+        transition: all .2s ease;
+    }
+
+    .checkout-button:hover {
+        background: #d92f64;
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    .continue-button {
+        width: 100%;
+        border: 1px solid #e3dfe2;
+        border-radius: 11px;
+        background: #fff;
+        color: #343138;
+        padding: 12px 18px;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all .2s ease;
+    }
+
+    .continue-button:hover {
+        border-color: #f43f78;
+        color: #f43f78;
+        background: #fffafb;
+    }
+
+    .secure-checkout {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        color: #8a858b;
+        font-size: 11px;
+        margin-top: 16px;
+    }
+
+    .secure-checkout i {
+        color: #16845b;
+    }
+
+    .clear-cart-wrapper {
+        margin-top: 15px;
+        text-align: right;
+    }
+
+    .clear-cart-button {
+        border: none;
+        background: transparent;
+        color: #99949a;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .clear-cart-button:hover {
+        color: #dc3545;
+    }
+
+    /* EMPTY */
+
+    .empty-cart {
+        background: #fff;
+        border: 1px solid #ece8eb;
+        border-radius: 20px;
+        padding: 75px 25px;
+        text-align: center;
+    }
+
+    .empty-cart-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 22px;
+        border-radius: 50%;
+        background: #fff1f5;
+        color: #f43f78;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+    }
+
+    .empty-cart h2 {
+        color: #18161a;
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .empty-cart p {
+        color: #77727a;
+        font-size: 13px;
+        margin-bottom: 24px;
+    }
+
+    .shop-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        border-radius: 10px;
+        background: #f43f78;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .shop-button:hover {
+        background: #d92f64;
+        color: #fff;
+    }
+
+    @@media (max-width: 991.98px) {
+
+        .cart-page {
+            padding-top: 30px;
+        }
+
+        .summary-card {
+            position: static;
+        }
+
+    }
+
+    @@media (max-width: 767.98px) {
+
+        .cart-item {
+            padding: 18px;
+        }
+
+        .cart-product-image,
+        .cart-image-placeholder {
+            width: 90px;
+            height: 105px;
+        }
+
+        .cart-product-name {
+            font-size: 14px;
+        }
+
+        .item-total {
+            font-size: 14px;
+        }
+
+    }
+
+    @@media (max-width: 575.98px) {
+
+        .cart-page {
+            padding: 25px 0 55px;
+        }
+
+        .cart-items-header {
+            padding: 16px;
+        }
+
+        .cart-item {
+            padding: 16px;
+        }
+
+        .cart-product-image,
+        .cart-image-placeholder {
+            width: 82px;
+            height: 95px;
+        }
+
+        .quantity-control button {
+            width: 30px;
+            height: 32px;
+        }
+
+        .quantity-control span {
+            min-width: 30px;
+        }
+
+        .summary-card {
+            padding: 20px;
+        }
+
+    }
+
+</style>
+
+
+<div class="cart-page">
+
+    <div class="container cart-container">
+
+        <!-- HEADER -->
+
+        <a asp-controller="Products"
+           asp-action="Index"
+           class="cart-breadcrumb">
+
+            <i class="bi bi-arrow-left"></i>
+
+            Continue Shopping
+
+        </a>
+
+        <div class="cart-heading">
+
+            <h1>
+                Shopping Cart
+            </h1>
+
+            <p>
+                Review your selected items before checkout.
+            </p>
+
+        </div>
+
+
+        <!-- ALERTS -->
+
+        @if (TempData["CartSuccess"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show cart-alert"
+                 role="alert">
+
+                <i class="bi bi-check-circle me-2"></i>
+
+                @TempData["CartSuccess"]
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
+
+            </div>
+        }
+
+        @if (TempData["CartError"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show cart-alert"
+                 role="alert">
+
+                <i class="bi bi-exclamation-circle me-2"></i>
+
+                @TempData["CartError"]
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
+
+            </div>
+        }
+
+
+        @if (!items.Any())
+        {
+            <!-- EMPTY CART -->
+
+            <div class="empty-cart">
+
+                <div class="empty-cart-icon">
+                    <i class="bi bi-bag"></i>
+                </div>
+
+                <h2>
+                    Your cart is empty
+                </h2>
+
+                <p>
+                    Looks like you haven't added anything yet.
+                    Let's find something special for your little one.
+                </p>
+
+                <a asp-controller="Products"
+                   asp-action="Index"
+                   class="shop-button">
+
+                    <i class="bi bi-bag-plus"></i>
+
+                    Start Shopping
+
+                </a>
+
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+
+                <!-- CART ITEMS -->
+
+                <div class="col-lg-8">
+
+                    <div class="cart-items-card">
+
+                        <div class="cart-items-header">
+
+                            <h5>
+                                Your Items
+                            </h5>
+
+                            <span class="cart-count">
+                                @items.Count item@(items.Count == 1 ? "" : "s")
+                            </span>
+
+                        </div>
+
+
+                        @foreach (var item in items)
+                        {
+                            var product = item.Product!;
+
+                            decimal price;
+
+                            decimal originalPrice =
+                                product.Price;
+
+                            if (product.DiscountPrice.HasValue &&
+                                product.DiscountPrice.Value > 0 &&
+                                product.DiscountPrice.Value < product.Price)
+                            {
+                                price =
+                                    product.DiscountPrice.Value;
+                            }
+                            else if (product.DiscountPercentage > 0)
+                            {
+                                price =
+                                    product.Price -
+                                    (
+                                        product.Price *
+                                        product.DiscountPercentage /
+                                        100m
+                                    );
+                            }
+                            else
+                            {
+                                price =
+                                    product.Price;
+                            }
+
+                            decimal itemTotal =
+                                price * item.Quantity;
+
+                            bool lowStock =
+                                product.StockQuantity > 0 &&
+                                product.StockQuantity <= 5;
+
+                            <div class="cart-item">
+
+                                <div class="row align-items-center g-3">
+
+                                    <!-- IMAGE -->
+
+                                    <div class="col-auto">
+
+                                        <a asp-controller="Products"
+                                           asp-action="Details"
+                                           asp-route-id="@product.Id">
+
+                                            @if (!string.IsNullOrWhiteSpace(product.MainImageUrl))
+                                            {
+                                                <img src="@product.MainImageUrl"
+                                                     alt="@product.Name"
+                                                     class="cart-product-image" />
+                                            }
+                                            else
+                                            {
+                                                <div class="cart-image-placeholder">
+                                                    <i class="bi bi-image"></i>
+                                                </div>
+                                            }
+
+                                        </a>
+
+                                    </div>
+
+
+                                    <!-- PRODUCT INFO -->
+
+                                    <div class="col">
+
+                                        <a asp-controller="Products"
+                                           asp-action="Details"
+                                           asp-route-id="@product.Id"
+                                           class="cart-product-name">
+
+                                            @product.Name
+
+                                        </a>
+
+                                        @if (product.Category != null)
+                                        {
+                                            <div class="cart-category">
+
+                                                @product.Category.Name
+
+                                            </div>
+                                        }
+
+                                        <div>
+
+                                            <span class="cart-price">
+                                                ₹@price.ToString("N2")
+                                            </span>
+
+                                            @if (price < originalPrice)
+                                            {
+                                                <span class="cart-old-price">
+                                                    ₹@originalPrice.ToString("N2")
+                                                </span>
+                                            }
+
+                                            @if (product.DiscountPercentage > 0)
+                                            {
+                                                <span class="cart-discount">
+                                                    @product.DiscountPercentage% OFF
+                                                </span>
+                                            }
+                                            else if (price < originalPrice)
+                                            {
+                                                var discountPercent =
+                                                    Math.Round(
+                                                        ((originalPrice - price) /
+                                                         originalPrice) * 100,
+                                                        0);
+
+                                                <span class="cart-discount">
+                                                    @discountPercent% OFF
+                                                </span>
+                                            }
+
+                                        </div>
+
+                                        @if (product.StockQuantity <= 0)
+                                        {
+                                            <div class="stock-label"
+                                                 style="color:#dc3545;">
+                                                Out of stock
+                                            </div>
+                                        }
+                                        else if (lowStock)
+                                        {
+                                            <div class="stock-label low-stock">
+                                                Only @product.StockQuantity left
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="stock-label in-stock">
+                                                <i class="bi bi-check-circle me-1"></i>
+                                                In stock
+                                            </div>
+                                        }
+
+                                    </div>
+
+
+                                    <!-- QUANTITY -->
+
+                                    <div class="col-auto">
+
+                                        <div class="quantity-label">
+                                            Quantity
+                                        </div>
+
+                                        <form asp-action="UpdateQuantity"
+                                              method="post">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="cartItemId"
+                                                   value="@item.Id" />
+
+                                            <div class="quantity-control">
+
+                                                <button type="submit"
+                                                        name="quantity"
+                                                        value="@(item.Quantity - 1)"
+                                                        aria-label="Decrease quantity">
+
+                                                    −
+
+                                                </button>
+
+                                                <span>
+                                                    @item.Quantity
+                                                </span>
+
+                                                <button type="submit"
+                                                        name="quantity"
+                                                        value="@(item.Quantity + 1)"
+                                                        aria-label="Increase quantity">
+
+                                                    +
+
+                                                </button>
+
+                                            </div>
+
+                                        </form>
+
+                                    </div>
+
+
+                                    <!-- TOTAL -->
+
+                                    <div class="col-auto text-end">
+
+                                        <div class="item-total-label">
+                                            Total
+                                        </div>
+
+                                        <div class="item-total">
+                                            ₹@itemTotal.ToString("N2")
+                                        </div>
+
+                                        <form asp-action="Remove"
+                                              method="post"
+                                              class="mt-2">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="cartItemId"
+                                                   value="@item.Id" />
+
+                                            <button type="submit"
+                                                    class="remove-button">
+
+                                                <i class="bi bi-trash3 me-1"></i>
+                                                Remove
+
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        }
+
+                    </div>
+
+
+                    <!-- CLEAR -->
+
+                    <div class="clear-cart-wrapper">
+
+                        <form asp-action="Clear"
+                              method="post"
+                              onsubmit="return confirm('Are you sure you want to clear your cart?');">
+
+                            @Html.AntiForgeryToken()
+
+                            <button type="submit"
+                                    class="clear-cart-button">
+
+                                <i class="bi bi-trash3 me-1"></i>
+                                Clear cart
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+
+                <!-- SUMMARY -->
+
+                <div class="col-lg-4">
+
+                    <div class="summary-card">
+
+                        <h4>
+                            Order Summary
+                        </h4>
+
+
+                        <div class="summary-row">
+
+                            <span>
+                                Subtotal
+                            </span>
+
+                            <strong>
+                                ₹@subtotal.ToString("N2")
+                            </strong>
+
+                        </div>
+
+
+                        <div class="summary-row">
+
+                            <span>
+                                Shipping
+                            </span>
+
+                            @if (shipping == 0)
+                            {
+                                <strong class="free-shipping">
+                                    FREE
+                                </strong>
+                            }
+                            else
+                            {
+                                <strong>
+                                    ₹@shipping.ToString("N2")
+                                </strong>
+                            }
+
+                        </div>
+
+
+                        @if (subtotal < 999)
+                        {
+                            var progress =
+                                Math.Min(
+                                    100m,
+                                    (subtotal / 999m) * 100m);
+
+                            <div class="shipping-progress">
+
+                                <p>
+
+                                    Add
+                                    <strong>
+                                        ₹@freeShippingRemaining.ToString("N2")
+                                    </strong>
+                                    more to unlock
+                                    <strong>FREE shipping</strong>.
+
+                                </p>
+
+                                <div class="shipping-track">
+
+                                    <div class="shipping-progress-bar"
+                                         style="width:@progress.ToString("0.##")%;">
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="shipping-progress">
+
+                                <p class="mb-0">
+
+                                    <strong>
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        You've unlocked FREE shipping!
+                                    </strong>
+
+                                </p>
+
+                            </div>
+                        }
+
+
+                        <hr class="summary-divider" />
+
+
+                        <div class="total-row">
+
+                            <span class="total-label">
+                                Total
+                            </span>
+
+                            <span class="total-price">
+                                ₹@total.ToString("N2")
+                            </span>
+
+                        </div>
+
+
+                        <a asp-controller="Checkout"
+                           asp-action="Index"
+                           class="checkout-button d-flex justify-content-center align-items-center gap-2">
+
+                            Proceed to Checkout
+
+                            <i class="bi bi-arrow-right"></i>
+
+                        </a>
+
+
+                        <a asp-controller="Products"
+                           asp-action="Index"
+                           class="continue-button d-flex justify-content-center align-items-center gap-2 mt-2">
+
+                            <i class="bi bi-arrow-left"></i>
+
+                            Continue Shopping
+
+                        </a>
+
+
+                        <div class="secure-checkout">
+
+                            <i class="bi bi-shield-check"></i>
+
+                            Secure checkout
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</div>

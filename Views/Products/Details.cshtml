@@ -1,0 +1,1808 @@
+@model KidsWearStore.Models.Product
+
+@{
+    ViewData["Title"] = Model.Name;
+
+    var hasDiscount =
+        Model.DiscountPrice.HasValue &&
+        Model.DiscountPrice.Value < Model.Price;
+
+    var displayPrice =
+        hasDiscount
+            ? Model.DiscountPrice!.Value
+            : Model.Price;
+
+    var savingAmount =
+        hasDiscount
+            ? Model.Price - displayPrice
+            : 0m;
+
+    var sizes = !string.IsNullOrWhiteSpace(Model.Sizes)
+        ? Model.Sizes.Split(
+            ',',
+            StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => x.Trim())
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .ToList()
+        : new List<string>();
+
+    var colors = !string.IsNullOrWhiteSpace(Model.Colors)
+        ? Model.Colors.Split(
+            ',',
+            StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => x.Trim())
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .ToList()
+        : new List<string>();
+
+    var productImages = Model.ProductImages?
+        .Where(x => !string.IsNullOrWhiteSpace(x.ImageUrl))
+        .ToList()
+        ?? new List<KidsWearStore.Models.ProductImage>();
+
+    var allImages = new List<string>();
+
+    if (!string.IsNullOrWhiteSpace(Model.MainImageUrl))
+    {
+        allImages.Add(Model.MainImageUrl);
+    }
+
+    foreach (var image in productImages)
+    {
+        if (!allImages.Contains(image.ImageUrl!))
+        {
+            allImages.Add(image.ImageUrl!);
+        }
+    }
+
+    var stockText = Model.StockQuantity switch
+    {
+        <= 0 => "Out of stock",
+        <= 5 => $"Only {Model.StockQuantity} left",
+        _ => "In stock"
+    };
+}
+
+<div class="container py-4 py-lg-5">
+
+    <!-- BREADCRUMB -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb small mb-0">
+
+            <li class="breadcrumb-item">
+                <a asp-controller="Home"
+                   asp-action="Index"
+                   class="text-decoration-none text-muted">
+                    Home
+                </a>
+            </li>
+
+            <li class="breadcrumb-item">
+                <a asp-controller="Products"
+                   asp-action="Index"
+                   class="text-decoration-none text-muted">
+                    Shop
+                </a>
+            </li>
+
+            @if (Model.Category != null)
+            {
+                <li class="breadcrumb-item">
+                    <a asp-controller="Products"
+                       asp-action="Index"
+                       asp-route-categoryId="@Model.CategoryId"
+                       class="text-decoration-none text-muted">
+                        @Model.Category.Name
+                    </a>
+                </li>
+            }
+
+            <li class="breadcrumb-item active"
+                aria-current="page">
+                @Model.Name
+            </li>
+
+        </ol>
+    </nav>
+
+
+    <!-- MESSAGES -->
+
+    @if (TempData["CartSuccess"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4"
+             role="alert">
+
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["CartSuccess"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["CartError"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4"
+             role="alert">
+
+            <i class="bi bi-exclamation-circle me-2"></i>
+            @TempData["CartError"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["WishlistMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4"
+             role="alert">
+
+            <i class="bi bi-heart-fill me-2"></i>
+            @TempData["WishlistMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["WishlistError"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4"
+             role="alert">
+
+            <i class="bi bi-exclamation-circle me-2"></i>
+            @TempData["WishlistError"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- PRODUCT -->
+
+    <div class="row g-4 g-xl-5">
+
+
+        <!-- ============================================== -->
+        <!-- PRODUCT GALLERY -->
+        <!-- ============================================== -->
+
+        <div class="col-lg-6">
+
+            <div class="product-gallery">
+
+                <div class="main-image-card">
+
+                    @if (allImages.Any())
+                    {
+                        <img id="mainProductImage"
+                             src="@allImages[0]"
+                             alt="@Model.Name"
+                             class="main-product-image" />
+                    }
+                    else
+                    {
+                        <div class="product-placeholder">
+
+                            <i class="bi bi-image"></i>
+
+                            <span>
+                                No product image
+                            </span>
+
+                        </div>
+                    }
+
+
+                    <!-- IMAGE LABELS -->
+
+                    <div class="image-labels">
+
+                        @if (Model.IsNewArrival)
+                        {
+                            <span class="product-label label-new">
+                                New Arrival
+                            </span>
+                        }
+
+                        @if (Model.IsBestSeller)
+                        {
+                            <span class="product-label label-best">
+                                Best Seller
+                            </span>
+                        }
+
+                    </div>
+
+
+                    <!-- DISCOUNT -->
+
+                    @if (hasDiscount)
+                    {
+                        <div class="discount-label">
+                            -@Model.DiscountPercentage%
+                        </div>
+                    }
+
+
+                    <!-- IMAGE COUNTER -->
+
+                    @if (allImages.Count > 1)
+                    {
+                        <div class="image-counter">
+
+                            <i class="bi bi-images me-1"></i>
+
+                            <span id="imageCounter">
+                                1 / @allImages.Count
+                            </span>
+
+                        </div>
+                    }
+
+                </div>
+
+
+                <!-- THUMBNAILS -->
+
+                @if (allImages.Count > 1)
+                {
+                    <div class="thumbnail-list">
+
+                        @for (int i = 0; i < allImages.Count; i++)
+                        {
+                            var imageUrl = allImages[i];
+
+                            <button type="button"
+                                    class="thumbnail-button @(i == 0 ? "active" : "")"
+                                    onclick="changeProductImage('@imageUrl', this, @i)">
+
+                                <img src="@imageUrl"
+                                     alt="@Model.Name image @(i + 1)" />
+
+                            </button>
+                        }
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+
+        <!-- ============================================== -->
+        <!-- PRODUCT INFORMATION -->
+        <!-- ============================================== -->
+
+        <div class="col-lg-6">
+
+            <div class="product-information">
+
+
+                <!-- CATEGORY -->
+
+                @if (Model.Category != null)
+                {
+                    <a asp-controller="Products"
+                       asp-action="Index"
+                       asp-route-categoryId="@Model.CategoryId"
+                       class="category-link">
+
+                        @Model.Category.Name
+
+                    </a>
+                }
+
+
+                <!-- TITLE -->
+
+                <h1 class="product-title">
+                    @Model.Name
+                </h1>
+
+
+                <!-- PRODUCT BADGES -->
+
+                <div class="product-badges">
+
+                    @if (Model.IsNewArrival)
+                    {
+                        <span class="status-badge badge-new">
+                            <i class="bi bi-stars me-1"></i>
+                            New Arrival
+                        </span>
+                    }
+
+                    @if (Model.IsBestSeller)
+                    {
+                        <span class="status-badge badge-best">
+                            <i class="bi bi-award me-1"></i>
+                            Best Seller
+                        </span>
+                    }
+
+                    @if (Model.IsFeatured)
+                    {
+                        <span class="status-badge badge-featured">
+                            <i class="bi bi-bookmark-star me-1"></i>
+                            Featured
+                        </span>
+                    }
+
+                </div>
+
+
+                <!-- SHORT DESCRIPTION -->
+
+                @if (!string.IsNullOrWhiteSpace(Model.ShortDescription))
+                {
+                    <p class="product-short-description">
+                        @Model.ShortDescription
+                    </p>
+                }
+
+
+                <!-- PRICE -->
+
+                <div class="price-section">
+
+                    <div class="price-line">
+
+                        <span class="current-price">
+                            ₹@displayPrice.ToString("N2")
+                        </span>
+
+                        @if (hasDiscount)
+                        {
+                            <span class="original-price">
+                                ₹@Model.Price.ToString("N2")
+                            </span>
+                        }
+
+                    </div>
+
+                    @if (hasDiscount)
+                    {
+                        <div class="saving-message">
+
+                            <i class="bi bi-tag-fill me-1"></i>
+
+                            You save ₹@savingAmount.ToString("N2")
+
+                            @if (Model.DiscountPercentage > 0)
+                            {
+                                <span>
+                                    (@Model.DiscountPercentage% off)
+                                </span>
+                            }
+
+                        </div>
+                    }
+
+                </div>
+
+
+                <!-- STOCK -->
+
+                <div class="stock-status">
+
+                    @if (Model.StockQuantity <= 0)
+                    {
+                        <span class="stock-badge stock-out">
+                            <span class="stock-dot"></span>
+                            Out of stock
+                        </span>
+                    }
+                    else if (Model.StockQuantity <= 5)
+                    {
+                        <span class="stock-badge stock-low">
+                            <span class="stock-dot"></span>
+                            @stockText
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="stock-badge stock-in">
+                            <span class="stock-dot"></span>
+                            In stock
+                        </span>
+                    }
+
+                </div>
+
+
+                <div class="product-divider"></div>
+
+
+                <!-- SIZE -->
+
+                @if (sizes.Any())
+                {
+                    <div class="selection-section">
+
+                        <div class="selection-header">
+
+                            <label class="selection-title">
+                                Select size
+                            </label>
+
+                            <span class="selection-required">
+                                Required
+                            </span>
+
+                        </div>
+
+                        <div class="size-options">
+
+                            @for (int i = 0; i < sizes.Count; i++)
+                            {
+                                var size = sizes[i];
+
+                                <button type="button"
+                                        class="size-option @(i == 0 ? "selected" : "")"
+                                        data-value="@size"
+                                        onclick="selectSize(this)">
+
+                                    @size
+
+                                </button>
+                            }
+
+                        </div>
+
+                        <input type="hidden"
+                               id="selectedSize"
+                               value="@(sizes.FirstOrDefault() ?? "")" />
+
+                    </div>
+                }
+
+
+                <!-- COLOR -->
+
+                @if (colors.Any())
+                {
+                    <div class="selection-section">
+
+                        <div class="selection-header">
+
+                            <label class="selection-title">
+                                Select color
+                            </label>
+
+                            <span class="selection-required">
+                                Required
+                            </span>
+
+                        </div>
+
+                        <div class="color-options">
+
+                            @for (int i = 0; i < colors.Count; i++)
+                            {
+                                var color = colors[i];
+
+                                <button type="button"
+                                        class="color-option @(i == 0 ? "selected" : "")"
+                                        data-value="@color"
+                                        onclick="selectColor(this)">
+
+                                    <span class="color-check">
+                                        <i class="bi bi-check"></i>
+                                    </span>
+
+                                    @color
+
+                                </button>
+                            }
+
+                        </div>
+
+                        <input type="hidden"
+                               id="selectedColor"
+                               value="@(colors.FirstOrDefault() ?? "")" />
+
+                    </div>
+                }
+
+
+                <!-- ADD TO CART -->
+
+                @if (Model.StockQuantity > 0)
+                {
+                    <form asp-controller="Cart"
+                          asp-action="AddToCart"
+                          method="post"
+                          id="addToCartForm">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="productId"
+                               value="@Model.Id" />
+
+                        <input type="hidden"
+                               name="quantity"
+                               id="cartQuantity"
+                               value="1" />
+
+
+                        <div class="purchase-row">
+
+                            <div class="quantity-wrapper">
+
+                                <label class="selection-title">
+                                    Quantity
+                                </label>
+
+                                <div class="quantity-control">
+
+                                    <button type="button"
+                                            class="quantity-button"
+                                            onclick="changeQuantity(-1)"
+                                            aria-label="Decrease quantity">
+
+                                        <i class="bi bi-dash"></i>
+
+                                    </button>
+
+                                    <input id="quantityInput"
+                                           type="number"
+                                           value="1"
+                                           min="1"
+                                           max="@Model.StockQuantity"
+                                           aria-label="Quantity" />
+
+                                    <button type="button"
+                                            class="quantity-button"
+                                            onclick="changeQuantity(1)"
+                                            aria-label="Increase quantity">
+
+                                        <i class="bi bi-plus"></i>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="cart-action">
+
+                                <button type="submit"
+                                        class="btn add-cart-button">
+
+                                    <i class="bi bi-bag-plus me-2"></i>
+
+                                    Add to Cart
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </form>
+                }
+                else
+                {
+                    <button type="button"
+                            class="btn out-of-stock-button"
+                            disabled>
+
+                        <i class="bi bi-x-circle me-2"></i>
+
+                        Currently unavailable
+
+                    </button>
+                }
+
+
+                <!-- WISHLIST -->
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <form asp-controller="Wishlist"
+                          asp-action="Toggle"
+                          method="post"
+                          class="wishlist-form">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="productId"
+                               value="@Model.Id" />
+
+                        <input type="hidden"
+                               name="returnUrl"
+                               value="@Context.Request.Path@Context.Request.QueryString" />
+
+                        <button type="submit"
+                                class="wishlist-button">
+
+                            <i class="bi bi-heart me-2"></i>
+
+                            Add to Wishlist
+
+                        </button>
+
+                    </form>
+                }
+                else
+                {
+                    <a asp-controller="Account"
+                       asp-action="Login"
+                       class="wishlist-button text-decoration-none">
+
+                        <i class="bi bi-heart me-2"></i>
+
+                        Sign in to save this item
+
+                    </a>
+                }
+
+
+                <!-- TRUST FEATURES -->
+
+                <div class="trust-section">
+
+                    <div class="trust-item">
+
+                        <div class="trust-icon">
+                            <i class="bi bi-truck"></i>
+                        </div>
+
+                        <div>
+                            <strong>Fast delivery</strong>
+                            <span>Reliable shipping</span>
+                        </div>
+
+                    </div>
+
+
+                    <div class="trust-item">
+
+                        <div class="trust-icon">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+
+                        <div>
+                            <strong>Secure checkout</strong>
+                            <span>Protected payments</span>
+                        </div>
+
+                    </div>
+
+
+                    <div class="trust-item">
+
+                        <div class="trust-icon">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </div>
+
+                        <div>
+                            <strong>Easy order support</strong>
+                            <span>We're here to help</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- DESCRIPTION -->
+
+                @if (!string.IsNullOrWhiteSpace(Model.Description))
+                {
+                    <div class="details-section">
+
+                        <button class="details-heading"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#productDescription"
+                                aria-expanded="true">
+
+                            <span>
+                                Product details
+                            </span>
+
+                            <i class="bi bi-chevron-down"></i>
+
+                        </button>
+
+                        <div id="productDescription"
+                             class="collapse show">
+
+                            <div class="details-content">
+
+                                @Model.Description
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                }
+
+
+                <!-- PRODUCT INFORMATION -->
+
+                <div class="details-section">
+
+                    <button class="details-heading"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#productInformation"
+                            aria-expanded="true">
+
+                        <span>
+                            Product information
+                        </span>
+
+                        <i class="bi bi-chevron-down"></i>
+
+                    </button>
+
+                    <div id="productInformation"
+                         class="collapse show">
+
+                        <div class="product-specifications">
+
+                            @if (Model.Category != null)
+                            {
+                                <div class="spec-row">
+
+                                    <span>Category</span>
+
+                                    <strong>
+                                        @Model.Category.Name
+                                    </strong>
+
+                                </div>
+                            }
+
+                            @if (sizes.Any())
+                            {
+                                <div class="spec-row">
+
+                                    <span>Available sizes</span>
+
+                                    <strong>
+                                        @string.Join(", ", sizes)
+                                    </strong>
+
+                                </div>
+                            }
+
+                            @if (colors.Any())
+                            {
+                                <div class="spec-row">
+
+                                    <span>Available colors</span>
+
+                                    <strong>
+                                        @string.Join(", ", colors)
+                                    </strong>
+
+                                </div>
+                            }
+
+                            <div class="spec-row">
+
+                                <span>Availability</span>
+
+                                <strong>
+                                    @stockText
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- VIEW CART -->
+
+                <div class="secondary-actions">
+
+                    <a asp-controller="Cart"
+                       asp-action="Index"
+                       class="secondary-action">
+
+                        <i class="bi bi-bag me-2"></i>
+                        View Cart
+
+                    </a>
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-controller="Wishlist"
+                           asp-action="Index"
+                           class="secondary-action">
+
+                            <i class="bi bi-heart me-2"></i>
+                            My Wishlist
+
+                        </a>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ===================================================== -->
+<!-- JAVASCRIPT -->
+<!-- ===================================================== -->
+
+<script>
+
+    function changeProductImage(imageUrl, button, index) {
+
+        const image =
+            document.getElementById("mainProductImage");
+
+        if (image) {
+            image.src = imageUrl;
+        }
+
+        document
+            .querySelectorAll(".thumbnail-button")
+            .forEach(function (item) {
+                item.classList.remove("active");
+            });
+
+        if (button) {
+            button.classList.add("active");
+        }
+
+        const counter =
+            document.getElementById("imageCounter");
+
+        if (counter) {
+            counter.textContent =
+                (index + 1) + " / " +
+                document.querySelectorAll(".thumbnail-button").length;
+        }
+    }
+
+
+    function selectSize(button) {
+
+        document
+            .querySelectorAll(".size-option")
+            .forEach(function (item) {
+                item.classList.remove("selected");
+            });
+
+        button.classList.add("selected");
+
+        const selected =
+            document.getElementById("selectedSize");
+
+        if (selected) {
+            selected.value =
+                button.dataset.value || "";
+        }
+    }
+
+
+    function selectColor(button) {
+
+        document
+            .querySelectorAll(".color-option")
+            .forEach(function (item) {
+                item.classList.remove("selected");
+            });
+
+        button.classList.add("selected");
+
+        const selected =
+            document.getElementById("selectedColor");
+
+        if (selected) {
+            selected.value =
+                button.dataset.value || "";
+        }
+    }
+
+
+    function changeQuantity(change) {
+
+        const input =
+            document.getElementById("quantityInput");
+
+        const hiddenInput =
+            document.getElementById("cartQuantity");
+
+        if (!input) {
+            return;
+        }
+
+        let value =
+            parseInt(input.value) || 1;
+
+        const min =
+            parseInt(input.min) || 1;
+
+        const max =
+            parseInt(input.max) || 999999;
+
+        value += change;
+
+        if (value < min) {
+            value = min;
+        }
+
+        if (value > max) {
+            value = max;
+        }
+
+        input.value = value;
+
+        if (hiddenInput) {
+            hiddenInput.value = value;
+        }
+    }
+
+
+    document
+        .getElementById("quantityInput")
+        ?.addEventListener("input", function () {
+
+            let value =
+                parseInt(this.value) || 1;
+
+            const min =
+                parseInt(this.min) || 1;
+
+            const max =
+                parseInt(this.max) || 999999;
+
+            if (value < min) {
+                value = min;
+            }
+
+            if (value > max) {
+                value = max;
+            }
+
+            this.value = value;
+
+            const hiddenInput =
+                document.getElementById("cartQuantity");
+
+            if (hiddenInput) {
+                hiddenInput.value = value;
+            }
+
+        });
+
+
+    document
+        .getElementById("addToCartForm")
+        ?.addEventListener("submit", function () {
+
+            const quantity =
+                document.getElementById("quantityInput");
+
+            const hiddenQuantity =
+                document.getElementById("cartQuantity");
+
+            if (quantity && hiddenQuantity) {
+                hiddenQuantity.value =
+                    quantity.value;
+            }
+
+        });
+
+</script>
+
+
+<!-- ===================================================== -->
+<!-- STYLES -->
+<!-- ===================================================== -->
+
+<style>
+
+    /* ================================================== */
+    /* GENERAL */
+    /* ================================================== */
+
+    .product-gallery {
+        position: sticky;
+        top: 90px;
+    }
+
+    .breadcrumb {
+        --bs-breadcrumb-divider: "/";
+    }
+
+    .breadcrumb-item.active {
+        color: #343a40;
+    }
+
+
+    /* ================================================== */
+    /* MAIN IMAGE */
+    /* ================================================== */
+
+    .main-image-card {
+        position: relative;
+        height: 620px;
+        background: #f7f7f5;
+        border-radius: 24px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .main-product-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 25px;
+        transition: transform .35s ease;
+    }
+
+    .main-image-card:hover .main-product-image {
+        transform: scale(1.025);
+    }
+
+    .product-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        color: #adb5bd;
+        font-size: 50px;
+    }
+
+    .product-placeholder span {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+
+    /* ================================================== */
+    /* IMAGE LABELS */
+    /* ================================================== */
+
+    .image-labels {
+        position: absolute;
+        top: 18px;
+        left: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .product-label {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        padding: 7px 11px;
+        border-radius: 7px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .03em;
+        text-transform: uppercase;
+    }
+
+    .label-new {
+        background: #212529;
+        color: #fff;
+    }
+
+    .label-best {
+        background: #fff;
+        color: #212529;
+        box-shadow: 0 3px 12px rgba(0,0,0,.08);
+    }
+
+    .discount-label {
+        position: absolute;
+        right: 18px;
+        bottom: 18px;
+        background: #212529;
+        color: #fff;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .image-counter {
+        position: absolute;
+        right: 18px;
+        top: 18px;
+        background: rgba(255,255,255,.92);
+        color: #343a40;
+        border-radius: 20px;
+        padding: 7px 11px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+
+    /* ================================================== */
+    /* THUMBNAILS */
+    /* ================================================== */
+
+    .thumbnail-list {
+        display: flex;
+        gap: 10px;
+        padding-top: 13px;
+        overflow-x: auto;
+        scrollbar-width: thin;
+    }
+
+    .thumbnail-button {
+        width: 82px;
+        height: 82px;
+        flex: 0 0 82px;
+        padding: 3px;
+        border: 1px solid #dee2e6;
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all .2s ease;
+    }
+
+    .thumbnail-button:hover {
+        border-color: #6c757d;
+    }
+
+    .thumbnail-button.active {
+        border: 2px solid #212529;
+    }
+
+    .thumbnail-button img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+
+    /* ================================================== */
+    /* PRODUCT INFORMATION */
+    /* ================================================== */
+
+    .product-information {
+        padding: 5px 0;
+    }
+
+    .category-link {
+        display: inline-block;
+        color: #6c757d;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .1em;
+        margin-bottom: 11px;
+    }
+
+    .category-link:hover {
+        color: #212529;
+    }
+
+    .product-title {
+        margin: 0;
+        color: #181818;
+        font-size: clamp(2rem, 3vw, 3rem);
+        line-height: 1.08;
+        font-weight: 700;
+        letter-spacing: -.035em;
+    }
+
+    .product-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 15px;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 20px;
+        padding: 6px 10px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .badge-new {
+        background: #f1f3f5;
+        color: #212529;
+    }
+
+    .badge-best {
+        background: #f8f1e7;
+        color: #694c25;
+    }
+
+    .badge-featured {
+        background: #f3f0fa;
+        color: #5d477d;
+    }
+
+    .product-short-description {
+        color: #6c757d;
+        line-height: 1.7;
+        margin: 20px 0 0;
+        font-size: 15px;
+    }
+
+
+    /* ================================================== */
+    /* PRICE */
+    /* ================================================== */
+
+    .price-section {
+        margin-top: 23px;
+    }
+
+    .price-line {
+        display: flex;
+        align-items: baseline;
+        gap: 13px;
+        flex-wrap: wrap;
+    }
+
+    .current-price {
+        color: #181818;
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: -.025em;
+    }
+
+    .original-price {
+        color: #8b8b8b;
+        font-size: 1rem;
+        text-decoration: line-through;
+    }
+
+    .saving-message {
+        color: #287a4a;
+        font-size: 13px;
+        font-weight: 600;
+        margin-top: 5px;
+    }
+
+
+    /* ================================================== */
+    /* STOCK */
+    /* ================================================== */
+
+    .stock-status {
+        margin-top: 13px;
+    }
+
+    .stock-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        border-radius: 20px;
+        padding: 6px 11px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .stock-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .stock-in {
+        background: #edf7f0;
+        color: #287a4a;
+    }
+
+    .stock-in .stock-dot {
+        background: #287a4a;
+    }
+
+    .stock-low {
+        background: #fff6df;
+        color: #896a16;
+    }
+
+    .stock-low .stock-dot {
+        background: #d5a91b;
+    }
+
+    .stock-out {
+        background: #fcebec;
+        color: #a33a44;
+    }
+
+    .stock-out .stock-dot {
+        background: #a33a44;
+    }
+
+    .product-divider {
+        border-top: 1px solid #e9ecef;
+        margin: 25px 0;
+    }
+
+
+    /* ================================================== */
+    /* OPTIONS */
+    /* ================================================== */
+
+    .selection-section {
+        margin-bottom: 23px;
+    }
+
+    .selection-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .selection-title {
+        color: #212529;
+        font-size: 13px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .selection-required {
+        color: #8b8b8b;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+    }
+
+    .size-options,
+    .color-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .size-option {
+        min-width: 55px;
+        height: 43px;
+        padding: 0 15px;
+        background: #fff;
+        color: #212529;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .18s ease;
+    }
+
+    .size-option:hover {
+        border-color: #212529;
+    }
+
+    .size-option.selected {
+        background: #212529;
+        border-color: #212529;
+        color: #fff;
+    }
+
+    .color-option {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 42px;
+        padding: 0 13px;
+        background: #fff;
+        color: #212529;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .18s ease;
+    }
+
+    .color-option:hover {
+        border-color: #212529;
+    }
+
+    .color-option.selected {
+        border-color: #212529;
+        box-shadow: inset 0 0 0 1px #212529;
+    }
+
+    .color-check {
+        display: none;
+    }
+
+    .color-option.selected .color-check {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+
+    /* ================================================== */
+    /* PURCHASE */
+    /* ================================================== */
+
+    .purchase-row {
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
+    .quantity-wrapper {
+        flex: 0 0 auto;
+    }
+
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        height: 52px;
+        margin-top: 7px;
+    }
+
+    .quantity-button {
+        width: 43px;
+        height: 52px;
+        border: 1px solid #ced4da;
+        background: #fff;
+        color: #212529;
+        font-size: 15px;
+        cursor: pointer;
+    }
+
+    .quantity-button:first-child {
+        border-radius: 9px 0 0 9px;
+    }
+
+    .quantity-button:last-child {
+        border-radius: 0 9px 9px 0;
+    }
+
+    .quantity-button:hover {
+        background: #f8f9fa;
+    }
+
+    #quantityInput {
+        width: 55px;
+        height: 52px;
+        border: 1px solid #ced4da;
+        border-left: 0;
+        border-right: 0;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 700;
+        outline: none;
+    }
+
+    #quantityInput::-webkit-inner-spin-button,
+    #quantityInput::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    #quantityInput[type=number] {
+        -moz-appearance: textfield;
+    }
+
+    .cart-action {
+        flex: 1;
+    }
+
+    .add-cart-button {
+        width: 100%;
+        height: 52px;
+        border: 0;
+        border-radius: 9px;
+        background: #212529;
+        color: #fff;
+        font-weight: 700;
+        transition: all .2s ease;
+    }
+
+    .add-cart-button:hover {
+        background: #000;
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    .out-of-stock-button {
+        width: 100%;
+        height: 52px;
+        border-radius: 9px;
+    }
+
+
+    /* ================================================== */
+    /* WISHLIST */
+    /* ================================================== */
+
+    .wishlist-form {
+        margin-top: 10px;
+    }
+
+    .wishlist-button {
+        width: 100%;
+        min-height: 49px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #dee2e6;
+        border-radius: 9px;
+        background: #fff;
+        color: #343a40;
+        font-size: 13px;
+        font-weight: 700;
+        transition: all .2s ease;
+    }
+
+    .wishlist-button:hover {
+        border-color: #212529;
+        color: #212529;
+        background: #f8f9fa;
+    }
+
+
+    /* ================================================== */
+    /* TRUST */
+    /* ================================================== */
+
+    .trust-section {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-top: 1px solid #e9ecef;
+        border-bottom: 1px solid #e9ecef;
+        margin-top: 25px;
+        padding: 18px 0;
+        gap: 12px;
+    }
+
+    .trust-item {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .trust-icon {
+        width: 35px;
+        height: 35px;
+        flex: 0 0 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #f5f5f3;
+        color: #212529;
+    }
+
+    .trust-item strong,
+    .trust-item span {
+        display: block;
+    }
+
+    .trust-item strong {
+        font-size: 11px;
+        line-height: 1.4;
+    }
+
+    .trust-item span {
+        color: #8b8b8b;
+        font-size: 10px;
+        margin-top: 2px;
+    }
+
+
+    /* ================================================== */
+    /* DETAILS */
+    /* ================================================== */
+
+    .details-section {
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .details-heading {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 19px 0;
+        border: 0;
+        background: transparent;
+        color: #212529;
+        font-size: 14px;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .details-heading i {
+        transition: transform .2s ease;
+    }
+
+    .details-heading[aria-expanded="true"] i {
+        transform: rotate(180deg);
+    }
+
+    .details-content {
+        color: #6c757d;
+        font-size: 14px;
+        line-height: 1.8;
+        padding: 0 0 20px;
+        white-space: pre-line;
+    }
+
+    .product-specifications {
+        padding-bottom: 18px;
+    }
+
+    .spec-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 8px 0;
+        font-size: 13px;
+    }
+
+    .spec-row span {
+        color: #8b8b8b;
+    }
+
+    .spec-row strong {
+        text-align: right;
+        font-weight: 600;
+    }
+
+
+    /* ================================================== */
+    /* SECONDARY ACTIONS */
+    /* ================================================== */
+
+    .secondary-actions {
+        display: flex;
+        gap: 9px;
+        margin-top: 15px;
+    }
+
+    .secondary-action {
+        flex: 1;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        color: #343a40;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
+        transition: all .2s ease;
+    }
+
+    .secondary-action:hover {
+        border-color: #212529;
+        color: #212529;
+        background: #f8f9fa;
+    }
+
+
+    /* ================================================== */
+    /* RESPONSIVE */
+    /* ================================================== */
+
+    @@media (max-width: 991.98px) {
+
+        .product-gallery {
+            position: static;
+        }
+
+        .main-image-card {
+            height: 540px;
+        }
+
+    }
+
+
+    @@media (max-width: 767.98px) {
+
+        .main-image-card {
+            height: 470px;
+            border-radius: 18px;
+        }
+
+        .product-title {
+            font-size: 2rem;
+        }
+
+        .current-price {
+            font-size: 1.8rem;
+        }
+
+        .trust-section {
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        .purchase-row {
+            align-items: stretch;
+        }
+
+    }
+
+
+    @@media (max-width: 575.98px) {
+
+        .main-image-card {
+            height: 380px;
+        }
+
+        .thumbnail-button {
+            width: 70px;
+            height: 70px;
+            flex-basis: 70px;
+        }
+
+        .product-title {
+            font-size: 1.75rem;
+        }
+
+        .purchase-row {
+            flex-direction: column;
+        }
+
+        .quantity-wrapper,
+        .cart-action {
+            width: 100%;
+        }
+
+        .quantity-control {
+            width: 100%;
+        }
+
+        .quantity-button {
+            width: 50px;
+        }
+
+        #quantityInput {
+            flex: 1;
+        }
+
+        .secondary-actions {
+            flex-direction: column;
+        }
+
+    }
+
+</style>

@@ -1,0 +1,258 @@
+@{
+    ViewData["Title"] = "About Us";
+}
+
+<style>
+    .about-page {
+        background: #fff;
+    }
+
+    .about-eyebrow {
+        letter-spacing: .14em;
+        font-size: .75rem;
+    }
+
+    .about-hero {
+        max-width: 760px;
+        margin: 0 auto;
+    }
+
+    .about-hero h1 {
+        letter-spacing: -.035em;
+        line-height: 1.05;
+    }
+
+    .about-card {
+        border: 1px solid #e9e9e9;
+        border-radius: 22px;
+        padding: 30px;
+        height: 100%;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .about-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(0,0,0,.06);
+    }
+
+    .about-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #f5f5f5;
+        font-size: 1.35rem;
+    }
+
+    .about-approach {
+        border-radius: 24px;
+        background: #f7f7f7;
+    }
+
+    .about-feature {
+        border-radius: 20px;
+    }
+
+    .about-cta {
+        border-top: 1px solid #ededed;
+    }
+
+    @@media (max-width: 767.98px) {
+        .about-page {
+            padding-top: 2rem !important;
+        }
+
+        .about-hero h1 {
+            font-size: 2.5rem;
+        }
+
+        .about-card {
+            padding: 24px;
+        }
+    }
+</style>
+
+<div class="about-page py-5">
+    <div class="container">
+
+        <!-- HERO -->
+        <section class="about-hero text-center mb-5">
+
+            <div class="about-eyebrow text-uppercase fw-semibold text-muted">
+                About CrisKidsWear
+            </div>
+
+            <h1 class="display-3 fw-bold mt-3 mb-4">
+                Clothing made for
+                every little moment.
+            </h1>
+
+            <p class="lead text-muted mx-auto mb-0">
+                CrisKidsWear is an online destination for children's clothing,
+                bringing together comfortable, stylish and carefully selected
+                outfits for everyday adventures and special occasions.
+            </p>
+
+        </section>
+
+
+        <!-- VALUES -->
+        <section class="row g-4 mb-5">
+
+            <div class="col-md-4">
+                <div class="about-card">
+
+                    <div class="about-icon">
+                        <i class="bi bi-stars"></i>
+                    </div>
+
+                    <h2 class="h5 fw-bold mt-4">
+                        Style
+                    </h2>
+
+                    <p class="text-muted mb-0">
+                        Modern children's fashion designed to make everyday
+                        outfits look special while keeping them practical
+                        for everyday life.
+                    </p>
+
+                </div>
+            </div>
+
+
+            <div class="col-md-4">
+                <div class="about-card">
+
+                    <div class="about-icon">
+                        <i class="bi bi-heart"></i>
+                    </div>
+
+                    <h2 class="h5 fw-bold mt-4">
+                        Comfort
+                    </h2>
+
+                    <p class="text-muted mb-0">
+                        We focus on clothing that children can comfortably
+                        wear, play and move around in throughout the day.
+                    </p>
+
+                </div>
+            </div>
+
+
+            <div class="col-md-4">
+                <div class="about-card">
+
+                    <div class="about-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+
+                    <h2 class="h5 fw-bold mt-4">
+                        Confidence
+                    </h2>
+
+                    <p class="text-muted mb-0">
+                        A straightforward shopping experience designed to make
+                        discovering children's clothing easier for parents.
+                    </p>
+
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- OUR APPROACH -->
+        <section class="about-approach p-4 p-md-5 mb-5">
+
+            <div class="row align-items-center g-5">
+
+                <div class="col-lg-7">
+
+                    <div class="about-eyebrow text-uppercase fw-semibold text-muted">
+                        Our approach
+                    </div>
+
+                    <h2 class="display-6 fw-bold mt-3">
+                        Simple shopping.
+                        <br />
+                        Better choices.
+                    </h2>
+
+                    <p class="text-muted mt-4 mb-0">
+                        CrisKidsWear is built around making children's fashion
+                        easier to discover. From browsing collections and
+                        saving favourites to secure checkout and order
+                        tracking, every part of the shopping journey is
+                        designed with simplicity in mind.
+                    </p>
+
+                </div>
+
+
+                <div class="col-lg-5">
+
+                    <div class="bg-white about-feature p-4 shadow-sm">
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <div class="about-icon flex-shrink-0">
+                                <i class="bi bi-bag-check"></i>
+                            </div>
+
+                            <div>
+                                <div class="fw-bold">
+                                    Shop with confidence
+                                </div>
+
+                                <div class="small text-muted">
+                                    From discovery to delivery
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <p class="small text-muted mb-0">
+                            Browse collections, compare products, save
+                            favourites to your wishlist and complete your
+                            order through our secure checkout experience.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- CTA -->
+        <section class="about-cta text-center pt-5">
+
+            <h2 class="h3 fw-bold">
+                Discover CrisKidsWear
+            </h2>
+
+            <p class="text-muted mx-auto mt-3 mb-4"
+               style="max-width: 620px;">
+                Explore our latest collection and discover clothing for
+                everyday adventures, special occasions and everything
+                in between.
+            </p>
+
+            <a asp-controller="Products"
+               asp-action="Index"
+               class="btn btn-dark rounded-pill px-4 py-2">
+                Shop Collection
+                <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+
+        </section>
+
+    </div>
+</div>

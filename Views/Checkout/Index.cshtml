@@ -1,0 +1,1465 @@
+@{
+    ViewData["Title"] = "Checkout";
+
+    var cartItems =
+        ViewBag.CartItems as IEnumerable<KidsWearStore.Models.CartItem>
+        ?? Enumerable.Empty<KidsWearStore.Models.CartItem>();
+
+    decimal subtotal =
+        ViewBag.Subtotal ?? 0m;
+
+    decimal shipping =
+        ViewBag.Shipping ?? 0m;
+
+    decimal total =
+        ViewBag.Total ?? 0m;
+
+    string customerName =
+        ViewBag.CustomerName ?? "";
+
+    string customerEmail =
+        ViewBag.CustomerEmail ?? "";
+
+    string customerPhone =
+        ViewBag.CustomerPhone ?? "";
+
+    string shippingAddress =
+        ViewBag.ShippingAddress ?? "";
+
+    string city =
+        ViewBag.City ?? "";
+
+    string state =
+        ViewBag.State ?? "";
+
+    string postalCode =
+        ViewBag.PostalCode ?? "";
+}
+
+<style>
+
+    .checkout-page {
+        background: #faf9fa;
+        min-height: 80vh;
+        padding: 40px 0 80px;
+    }
+
+    .checkout-container {
+        max-width: 1180px;
+        margin: 0 auto;
+    }
+
+    .checkout-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: #77727a;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        margin-bottom: 18px;
+    }
+
+    .checkout-back:hover {
+        color: #f43f78;
+    }
+
+    .checkout-heading {
+        margin-bottom: 28px;
+    }
+
+    .checkout-heading h1 {
+        color: #18161a;
+        font-size: clamp(28px, 4vw, 38px);
+        font-weight: 700;
+        letter-spacing: -1px;
+        margin: 0;
+    }
+
+    .checkout-heading p {
+        color: #77727a;
+        font-size: 13px;
+        margin: 7px 0 0;
+    }
+
+    /* STEPS */
+
+    .checkout-steps {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 30px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .checkout-step {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: #99949a;
+    }
+
+    .checkout-step.active {
+        color: #f43f78;
+    }
+
+    .step-number {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #eee9ec;
+        color: #77727a;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .checkout-step.active .step-number {
+        background: #f43f78;
+        color: #fff;
+    }
+
+    .step-line {
+        width: 35px;
+        height: 1px;
+        background: #e1dde0;
+    }
+
+    /* CARDS */
+
+    .checkout-card {
+        background: #fff;
+        border: 1px solid #ece8eb;
+        border-radius: 17px;
+        padding: 25px;
+        margin-bottom: 18px;
+    }
+
+    .checkout-card-title {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        color: #18161a;
+        font-size: 17px;
+        font-weight: 700;
+        margin-bottom: 22px;
+    }
+
+    .checkout-card-title-icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff1f5;
+        color: #f43f78;
+    }
+
+    /* FORMS */
+
+    .checkout-label {
+        color: #343138;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 7px;
+    }
+
+    .checkout-input {
+        width: 100%;
+        border: 1px solid #ded9dd;
+        border-radius: 9px;
+        background: #fff;
+        color: #18161a;
+        padding: 11px 12px;
+        font-size: 13px;
+        outline: none;
+        transition: border-color .2s ease,
+                    box-shadow .2s ease;
+    }
+
+    .checkout-input:focus {
+        border-color: #f43f78;
+        box-shadow: 0 0 0 3px rgba(244,63,120,.08);
+    }
+
+    textarea.checkout-input {
+        resize: vertical;
+        min-height: 105px;
+    }
+
+    /* PAYMENT */
+
+    .payment-option {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 15px;
+        border: 1px solid #e1dde0;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all .2s ease;
+    }
+
+    .payment-option:hover {
+        border-color: #f2a1b9;
+        background: #fffafb;
+    }
+
+    .payment-option.selected {
+        border-color: #f43f78;
+        background: #fff5f8;
+        box-shadow: 0 0 0 1px rgba(244,63,120,.08);
+    }
+
+    .payment-option input {
+        width: 18px;
+        height: 18px;
+        accent-color: #f43f78;
+        flex-shrink: 0;
+    }
+
+    .payment-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+        background: #f7f5f6;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #555057;
+        font-size: 17px;
+    }
+
+    .payment-title {
+        color: #18161a;
+        font-size: 13px;
+        font-weight: 700;
+        display: block;
+    }
+
+    .payment-description {
+        color: #88838a;
+        font-size: 11px;
+        margin-top: 3px;
+        display: block;
+    }
+
+    /* SUMMARY */
+
+    .summary-card {
+        background: #fff;
+        border: 1px solid #ece8eb;
+        border-radius: 17px;
+        padding: 24px;
+        position: sticky;
+        top: 92px;
+    }
+
+    .summary-title {
+        color: #18161a;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 19px;
+    }
+
+    .order-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 0;
+        border-bottom: 1px solid #f0edef;
+    }
+
+    .order-item:last-of-type {
+        border-bottom: none;
+    }
+
+    .order-item-image {
+        width: 64px;
+        height: 70px;
+        border-radius: 9px;
+        object-fit: cover;
+        background: #f6f4f5;
+        flex-shrink: 0;
+    }
+
+    .order-item-placeholder {
+        width: 64px;
+        height: 70px;
+        border-radius: 9px;
+        background: #f6f4f5;
+        color: #aaa5aa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .order-item-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .order-item-name {
+        color: #18161a;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.35;
+        margin-bottom: 4px;
+    }
+
+    .order-item-quantity {
+        color: #88838a;
+        font-size: 10px;
+    }
+
+    .order-item-price {
+        color: #18161a;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .summary-section {
+        margin-top: 15px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #77727a;
+        font-size: 12px;
+        margin-bottom: 12px;
+    }
+
+    .summary-row strong {
+        color: #343138;
+    }
+
+    .free-shipping {
+        color: #16845b !important;
+    }
+
+    .summary-divider {
+        border: 0;
+        border-top: 1px solid #ece8eb;
+        margin: 18px 0;
+    }
+
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #18161a;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .summary-total-price {
+        color: #f43f78;
+        font-size: 20px;
+    }
+
+    .shipping-message {
+        margin-top: 16px;
+        padding: 12px;
+        border-radius: 9px;
+        background: #fff6f8;
+        color: #6d5960;
+        font-size: 10px;
+        line-height: 1.5;
+    }
+
+    .shipping-message strong {
+        color: #f43f78;
+    }
+
+    /* PLACE ORDER */
+
+    .place-order-card {
+        background: #fff;
+        border: 1px solid #ece8eb;
+        border-radius: 17px;
+        padding: 22px;
+        margin-top: 18px;
+    }
+
+    .place-order-button {
+        width: 100%;
+        border: none;
+        border-radius: 10px;
+        background: #f43f78;
+        color: #fff;
+        padding: 13px 18px;
+        font-size: 14px;
+        font-weight: 700;
+        transition: all .2s ease;
+    }
+
+    .place-order-button:hover {
+        background: #d92f64;
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    .place-order-button:disabled {
+        opacity: .65;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .secure-message {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        color: #8a858b;
+        font-size: 10px;
+        text-align: center;
+        line-height: 1.5;
+        margin-top: 13px;
+    }
+
+    .secure-message i {
+        color: #16845b;
+    }
+
+    .checkout-message {
+        margin-top: 12px;
+    }
+
+    .checkout-message .alert {
+        border-radius: 9px;
+        font-size: 11px;
+        margin-bottom: 0;
+    }
+
+    /* VALIDATION */
+
+    .field-validation {
+        color: #dc3545;
+        font-size: 11px;
+        margin-top: 5px;
+    }
+
+    @@media (max-width: 991.98px) {
+
+        .summary-card {
+            position: static;
+        }
+
+        .checkout-page {
+            padding-top: 30px;
+        }
+
+    }
+
+    @@media (max-width: 767.98px) {
+
+        .checkout-card {
+            padding: 19px;
+        }
+
+        .checkout-steps {
+            gap: 6px;
+        }
+
+        .step-line {
+            width: 18px;
+        }
+
+        .checkout-step span:not(.step-number) {
+            display: none;
+        }
+
+    }
+
+    @@media (max-width: 575.98px) {
+
+        .checkout-page {
+            padding: 24px 0 55px;
+        }
+
+        .checkout-card,
+        .summary-card,
+        .place-order-card {
+            border-radius: 14px;
+            padding: 17px;
+        }
+
+        .checkout-heading h1 {
+            font-size: 28px;
+        }
+
+        .payment-option {
+            padding: 12px;
+        }
+
+    }
+
+</style>
+
+
+<div class="checkout-page">
+
+    <div class="container checkout-container">
+
+        <!-- BACK -->
+
+        <a asp-controller="Cart"
+           asp-action="Index"
+           class="checkout-back">
+
+            <i class="bi bi-arrow-left"></i>
+
+            Back to Cart
+
+        </a>
+
+
+        <!-- HEADER -->
+
+        <div class="checkout-heading">
+
+            <h1>
+                Checkout
+            </h1>
+
+            <p>
+                Complete your details and choose your preferred payment method.
+            </p>
+
+        </div>
+
+
+        <!-- STEPS -->
+
+        <div class="checkout-steps">
+
+            <div class="checkout-step active">
+
+                <span class="step-number">
+                    1
+                </span>
+
+                <span>
+                    Details
+                </span>
+
+            </div>
+
+            <div class="step-line"></div>
+
+            <div class="checkout-step active">
+
+                <span class="step-number">
+                    2
+                </span>
+
+                <span>
+                    Payment
+                </span>
+
+            </div>
+
+            <div class="step-line"></div>
+
+            <div class="checkout-step">
+
+                <span class="step-number">
+                    3
+                </span>
+
+                <span>
+                    Confirmation
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- FORM -->
+
+        <form id="checkoutForm"
+              asp-controller="Checkout"
+              asp-action="PlaceOrder"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <div class="row g-4">
+
+                <!-- LEFT -->
+
+                <div class="col-lg-7">
+
+                    <!-- CUSTOMER -->
+
+                    <div class="checkout-card">
+
+                        <div class="checkout-card-title">
+
+                            <span class="checkout-card-title-icon">
+
+                                <i class="bi bi-person"></i>
+
+                            </span>
+
+                            Customer Information
+
+                        </div>
+
+
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+
+                                <label class="checkout-label">
+                                    Full Name
+                                </label>
+
+                                <input type="text"
+                                       name="customerName"
+                                       value="@customerName"
+                                       class="checkout-input"
+                                       maxlength="150"
+                                       autocomplete="name"
+                                       required />
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <label class="checkout-label">
+                                    Email Address
+                                </label>
+
+                                <input type="email"
+                                       name="customerEmail"
+                                       value="@customerEmail"
+                                       class="checkout-input"
+                                       maxlength="200"
+                                       autocomplete="email"
+                                       required />
+
+                            </div>
+
+
+                            <div class="col-md-12">
+
+                                <label class="checkout-label">
+                                    Phone Number
+                                </label>
+
+                                <input type="tel"
+                                       name="customerPhone"
+                                       value="@customerPhone"
+                                       class="checkout-input"
+                                       maxlength="30"
+                                       autocomplete="tel"
+                                       required />
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SHIPPING -->
+
+                    <div class="checkout-card">
+
+                        <div class="checkout-card-title">
+
+                            <span class="checkout-card-title-icon">
+
+                                <i class="bi bi-geo-alt"></i>
+
+                            </span>
+
+                            Delivery Address
+
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <label class="checkout-label">
+                                Street Address
+                            </label>
+
+                            <textarea name="shippingAddress"
+                                      class="checkout-input"
+                                      rows="3"
+                                      maxlength="500"
+                                      autocomplete="street-address"
+                                      required>@shippingAddress</textarea>
+
+                        </div>
+
+
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+
+                                <label class="checkout-label">
+                                    City
+                                </label>
+
+                                <input type="text"
+                                       name="city"
+                                       value="@city"
+                                       class="checkout-input"
+                                       maxlength="100"
+                                       autocomplete="address-level2"
+                                       required />
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <label class="checkout-label">
+                                    State
+                                </label>
+
+                                <input type="text"
+                                       name="state"
+                                       value="@state"
+                                       class="checkout-input"
+                                       maxlength="100"
+                                       autocomplete="address-level1"
+                                       required />
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <label class="checkout-label">
+                                    Postal Code
+                                </label>
+
+                                <input type="text"
+                                       name="postalCode"
+                                       value="@postalCode"
+                                       class="checkout-input"
+                                       maxlength="20"
+                                       autocomplete="postal-code"
+                                       required />
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PAYMENT -->
+
+                    <div class="checkout-card">
+
+                        <div class="checkout-card-title">
+
+                            <span class="checkout-card-title-icon">
+
+                                <i class="bi bi-credit-card"></i>
+
+                            </span>
+
+                            Payment Method
+
+                        </div>
+
+
+                        <!-- COD -->
+
+                        <label class="payment-option"
+                               id="codOption">
+
+                            <input type="radio"
+                                   name="paymentMethod"
+                                   value="Cash on Delivery"
+                                   checked />
+
+                            <span class="payment-icon">
+
+                                <i class="bi bi-cash-stack"></i>
+
+                            </span>
+
+                            <span>
+
+                                <span class="payment-title">
+                                    Cash on Delivery
+                                </span>
+
+                                <span class="payment-description">
+                                    Pay when your order is delivered.
+                                </span>
+
+                            </span>
+
+                        </label>
+
+
+                        <!-- PREPAID -->
+
+                        <label class="payment-option"
+                               id="prepaidOption">
+
+                            <input type="radio"
+                                   name="paymentMethod"
+                                   value="Prepaid" />
+
+                            <span class="payment-icon">
+
+                                <i class="bi bi-credit-card"></i>
+
+                            </span>
+
+                            <span>
+
+                                <span class="payment-title">
+                                    Online Payment
+                                </span>
+
+                                <span class="payment-description">
+                                    Pay securely with UPI, cards or net banking.
+                                </span>
+
+                            </span>
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+
+                <!-- RIGHT -->
+
+                <div class="col-lg-5">
+
+                    <div class="summary-card">
+
+                        <div class="summary-title">
+                            Your Order
+                        </div>
+
+
+                        @foreach (var item in cartItems)
+                        {
+                            var product = item.Product!;
+
+                            decimal itemPrice;
+
+                            if (product.DiscountPrice.HasValue &&
+                                product.DiscountPrice.Value > 0 &&
+                                product.DiscountPrice.Value < product.Price)
+                            {
+                                itemPrice =
+                                    product.DiscountPrice.Value;
+                            }
+                            else if (product.DiscountPercentage > 0)
+                            {
+                                itemPrice =
+                                    product.Price -
+                                    (
+                                        product.Price *
+                                        product.DiscountPercentage /
+                                        100m
+                                    );
+                            }
+                            else
+                            {
+                                itemPrice =
+                                    product.Price;
+                            }
+
+                            decimal itemTotal =
+                                itemPrice * item.Quantity;
+
+                            <div class="order-item">
+
+                                @if (!string.IsNullOrWhiteSpace(product.MainImageUrl))
+                                {
+                                    <img src="@product.MainImageUrl"
+                                         alt="@product.Name"
+                                         class="order-item-image" />
+                                }
+                                else
+                                {
+                                    <div class="order-item-placeholder">
+
+                                        <i class="bi bi-image"></i>
+
+                                    </div>
+                                }
+
+
+                                <div class="order-item-info">
+
+                                    <div class="order-item-name">
+                                        @product.Name
+                                    </div>
+
+                                    <div class="order-item-quantity">
+                                        Qty: @item.Quantity
+                                    </div>
+
+                                </div>
+
+
+                                <div class="order-item-price">
+
+                                    ₹@itemTotal.ToString("N2")
+
+                                </div>
+
+                            </div>
+                        }
+
+
+                        <div class="summary-section">
+
+                            <div class="summary-row">
+
+                                <span>
+                                    Subtotal
+                                </span>
+
+                                <strong>
+                                    ₹@subtotal.ToString("N2")
+                                </strong>
+
+                            </div>
+
+
+                            <div class="summary-row">
+
+                                <span>
+                                    Shipping
+                                </span>
+
+                                @if (shipping == 0)
+                                {
+                                    <strong class="free-shipping">
+                                        FREE
+                                    </strong>
+                                }
+                                else
+                                {
+                                    <strong>
+                                        ₹@shipping.ToString("N2")
+                                    </strong>
+                                }
+
+                            </div>
+
+                        </div>
+
+
+                        <hr class="summary-divider" />
+
+
+                        <div class="summary-total">
+
+                            <span>
+                                Total
+                            </span>
+
+                            <span class="summary-total-price">
+                                ₹@total.ToString("N2")
+                            </span>
+
+                        </div>
+
+
+                        @if (subtotal < 999)
+                        {
+                            <div class="shipping-message">
+
+                                Add
+                                <strong>
+                                    ₹@((999 - subtotal).ToString("N2"))
+                                </strong>
+                                more to unlock
+                                <strong>FREE shipping</strong>.
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="shipping-message">
+
+                                <strong>
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    Free shipping unlocked!
+                                </strong>
+
+                            </div>
+                        }
+
+                    </div>
+
+
+                    <!-- PLACE ORDER -->
+
+                    <div class="place-order-card">
+
+                        <button type="submit"
+                                id="placeOrderButton"
+                                class="place-order-button">
+
+                            <i class="bi bi-lock me-1"></i>
+
+                            Place Order
+
+                        </button>
+
+
+                        <div id="checkoutMessage"
+                             class="checkout-message">
+                        </div>
+
+
+                        <div class="secure-message">
+
+                            <i class="bi bi-shield-check"></i>
+
+                            Secure checkout. Online payments are securely
+                            processed through Razorpay.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- RAZORPAY -->
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+
+<script>
+
+    const checkoutForm =
+        document.getElementById("checkoutForm");
+
+    const placeOrderButton =
+        document.getElementById("placeOrderButton");
+
+    const checkoutMessage =
+        document.getElementById("checkoutMessage");
+
+    const codOption =
+        document.getElementById("codOption");
+
+    const prepaidOption =
+        document.getElementById("prepaidOption");
+
+
+    // --------------------------------------------------
+    // PAYMENT OPTION VISUAL STATE
+    // --------------------------------------------------
+
+    function updatePaymentStyle() {
+
+        const selected =
+            document.querySelector(
+                'input[name="paymentMethod"]:checked'
+            );
+
+        codOption.classList.remove("selected");
+        prepaidOption.classList.remove("selected");
+
+        if (selected &&
+            selected.value === "Prepaid") {
+
+            prepaidOption.classList.add("selected");
+
+        }
+        else {
+
+            codOption.classList.add("selected");
+
+        }
+    }
+
+
+    document
+        .querySelectorAll(
+            'input[name="paymentMethod"]'
+        )
+        .forEach(function (radio) {
+
+            radio.addEventListener(
+                "change",
+                updatePaymentStyle
+            );
+
+        });
+
+
+    updatePaymentStyle();
+
+
+    // --------------------------------------------------
+    // SUBMIT
+    // --------------------------------------------------
+
+    checkoutForm.addEventListener(
+        "submit",
+        async function (event) {
+
+            event.preventDefault();
+
+            checkoutMessage.innerHTML = "";
+
+            placeOrderButton.disabled = true;
+
+            placeOrderButton.innerHTML =
+                '<i class="bi bi-hourglass-split me-1"></i> Processing...';
+
+
+            try {
+
+                const formData =
+                    new FormData(checkoutForm);
+
+
+                const response =
+                    await fetch(
+                        checkoutForm.action,
+                        {
+                            method: "POST",
+                            body: formData
+                        }
+                    );
+
+
+                const result =
+                    await response.json();
+
+
+                if (!result.success) {
+
+                    checkoutMessage.innerHTML =
+                        `<div class="alert alert-danger">
+                            <i class="bi bi-exclamation-circle me-1"></i>
+                            ${result.message || "Unable to place order."}
+                         </div>`;
+
+
+                    placeOrderButton.disabled =
+                        false;
+
+                    placeOrderButton.innerHTML =
+                        '<i class="bi bi-lock me-1"></i> Place Order';
+
+                    return;
+                }
+
+
+                // --------------------------------------
+                // COD
+                // --------------------------------------
+
+                if (!result.prepaid) {
+
+                    window.location.href =
+                        result.redirectUrl;
+
+                    return;
+                }
+
+
+                // --------------------------------------
+                // PREPAID
+                // --------------------------------------
+
+                if (!result.keyId ||
+                    !result.razorpayOrderId) {
+
+                    throw new Error(
+                        "Razorpay configuration is incomplete."
+                    );
+                }
+
+
+                const options = {
+
+                    key:
+                        result.keyId,
+
+                    amount:
+                        result.amount,
+
+                    currency:
+                        result.currency,
+
+                    name:
+                        "CrisKidsWear",
+
+                    description:
+                         "CrisKidsWear Order",
+
+                    order_id:
+                        result.razorpayOrderId,
+
+                    prefill: {
+
+                        name:
+                            result.customerName,
+
+                        email:
+                            result.customerEmail,
+
+                        contact:
+                            result.customerPhone
+
+                    },
+
+                    theme: {
+
+                        color:
+                            "#f43f78"
+
+                    },
+
+
+                    handler:
+                        async function (
+                            paymentResponse
+                        ) {
+
+                            await verifyPayment(
+                                result.orderNumber,
+                                paymentResponse
+                            );
+
+                        },
+
+
+                    modal: {
+
+                        ondismiss:
+                            function () {
+
+                                checkoutMessage.innerHTML =
+                                    `<div class="alert alert-warning">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Payment was cancelled. You can try again.
+                                     </div>`;
+
+
+                                placeOrderButton.disabled =
+                                    false;
+
+                                placeOrderButton.innerHTML =
+                                    '<i class="bi bi-credit-card me-1"></i> Try Payment Again';
+
+                            }
+
+                    }
+
+                };
+
+
+                const razorpay =
+                    new Razorpay(options);
+
+
+                razorpay.on(
+                    "payment.failed",
+                    function () {
+
+                        checkoutMessage.innerHTML =
+                            `<div class="alert alert-danger">
+                                <i class="bi bi-x-circle me-1"></i>
+                                Payment failed. Please try again.
+                             </div>`;
+
+
+                        placeOrderButton.disabled =
+                            false;
+
+                        placeOrderButton.innerHTML =
+                            '<i class="bi bi-credit-card me-1"></i> Try Payment Again';
+
+                    }
+                );
+
+
+                razorpay.open();
+
+            }
+            catch (error) {
+
+                console.error(error);
+
+
+                checkoutMessage.innerHTML =
+                    `<div class="alert alert-danger">
+                        <i class="bi bi-exclamation-circle me-1"></i>
+                        Something went wrong. Please try again.
+                     </div>`;
+
+
+                placeOrderButton.disabled =
+                    false;
+
+                placeOrderButton.innerHTML =
+                    '<i class="bi bi-lock me-1"></i> Place Order';
+
+            }
+
+        }
+    );
+
+
+    // --------------------------------------------------
+    // VERIFY PAYMENT
+    // --------------------------------------------------
+
+    async function verifyPayment(
+        orderNumber,
+        paymentResponse
+    ) {
+
+        checkoutMessage.innerHTML =
+            `<div class="alert alert-info">
+                <i class="bi bi-shield-check me-1"></i>
+                Verifying your payment...
+             </div>`;
+
+
+        placeOrderButton.disabled =
+            true;
+
+
+        const token =
+            checkoutForm.querySelector(
+                'input[name="__RequestVerificationToken"]'
+            ).value;
+
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "__RequestVerificationToken",
+            token
+        );
+
+
+        formData.append(
+            "orderNumber",
+            orderNumber
+        );
+
+
+        formData.append(
+            "razorpayOrderId",
+            paymentResponse.razorpay_order_id
+        );
+
+
+        formData.append(
+            "razorpayPaymentId",
+            paymentResponse.razorpay_payment_id
+        );
+
+
+        formData.append(
+            "razorpaySignature",
+            paymentResponse.razorpay_signature
+        );
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/Checkout/VerifyPayment",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+
+            const result =
+                await response.json();
+
+
+            if (result.success) {
+
+                window.location.href =
+                    result.redirectUrl;
+
+                return;
+            }
+
+
+            checkoutMessage.innerHTML =
+                `<div class="alert alert-danger">
+                    <i class="bi bi-exclamation-circle me-1"></i>
+                    ${result.message ||
+                     "Payment verification failed."}
+                 </div>`;
+
+
+            placeOrderButton.disabled =
+                false;
+
+
+            placeOrderButton.innerHTML =
+                '<i class="bi bi-credit-card me-1"></i> Try Payment Again';
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+
+            checkoutMessage.innerHTML =
+                `<div class="alert alert-danger">
+                    <i class="bi bi-exclamation-circle me-1"></i>
+                    Unable to verify payment.
+                    Please contact the store if money was deducted.
+                 </div>`;
+
+
+            placeOrderButton.disabled =
+                false;
+
+
+            placeOrderButton.innerHTML =
+                '<i class="bi bi-credit-card me-1"></i> Try Payment Again';
+
+        }
+
+    }
+
+</script>

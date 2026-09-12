@@ -1,0 +1,652 @@
+@model IEnumerable<KidsWearStore.Models.Product>
+
+@{
+    ViewData["Title"] = "Manage Products";
+}
+
+<style>
+    .manage-page {
+        background: #f8f9fb;
+        min-height: 100vh;
+    }
+
+    .manage-header {
+        background: #ffffff;
+        border: 1px solid #e8e8ec;
+        border-radius: 18px;
+        padding: 28px;
+    }
+
+    .manage-title {
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+
+    .product-table-card {
+        background: #ffffff;
+        border: 1px solid #e8e8ec;
+        border-radius: 18px;
+        overflow: hidden;
+    }
+
+    .product-table {
+        margin-bottom: 0;
+    }
+
+    .product-table thead th {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #6c757d;
+        white-space: nowrap;
+        padding: 16px;
+    }
+
+    .product-table tbody td {
+        padding: 16px;
+        vertical-align: middle;
+    }
+
+    .product-image {
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        background: #f8f9fa;
+    }
+
+    .product-image-placeholder {
+        width: 64px;
+        height: 64px;
+        border-radius: 12px;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+        font-size: 1.35rem;
+    }
+
+    .product-name {
+        font-weight: 600;
+        color: #18181b;
+    }
+
+    .product-id {
+        font-size: 0.78rem;
+        color: #8a8f98;
+        margin-top: 3px;
+    }
+
+    .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+    }
+
+    .action-buttons .btn {
+        white-space: nowrap;
+    }
+
+    .empty-state {
+        padding: 70px 20px;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 18px;
+        border-radius: 16px;
+        background: #f1f3f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        font-size: 1.6rem;
+    }
+
+    .status-badge {
+        font-size: 0.76rem;
+        padding: 6px 10px;
+        border-radius: 999px;
+    }
+
+    .featured-badge {
+        font-size: 0.72rem;
+    }
+
+    .stock-number {
+        font-weight: 600;
+    }
+
+    .delete-warning {
+        color: #dc3545;
+    }
+
+    @@media (max-width: 768px) {
+
+        .manage-header {
+            padding: 20px;
+        }
+
+        .manage-header-content {
+            flex-direction: column;
+            align-items: stretch !important;
+            gap: 18px;
+        }
+
+        .manage-header .btn {
+            width: 100%;
+        }
+
+        .product-table thead th,
+        .product-table tbody td {
+            padding: 12px;
+        }
+
+        .action-buttons {
+            min-width: 170px;
+        }
+    }
+</style>
+
+
+<div class="manage-page">
+
+    <div class="container py-5">
+
+        <!-- ================================================= -->
+        <!-- HEADER -->
+        <!-- ================================================= -->
+
+        <div class="manage-header mb-4">
+
+            <div class="manage-header-content d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <div class="text-uppercase text-muted small fw-semibold mb-2">
+                        Product Management
+                    </div>
+
+                    <h1 class="manage-title mb-2">
+                        Manage Products
+                    </h1>
+
+                    <p class="text-muted mb-0">
+                        Add, edit, activate, deactivate and delete products
+                        from CrisKidsWear.
+                    </p>
+
+                </div>
+
+
+                <div>
+
+                    <a asp-action="Create"
+                       class="btn btn-dark px-4">
+
+                        <i class="bi bi-plus-lg me-2"></i>
+                        Add New Product
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- SUCCESS MESSAGE -->
+        <!-- ================================================= -->
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-check-circle me-2"></i>
+
+                @TempData["Success"]
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                </button>
+
+            </div>
+        }
+
+
+        <!-- ================================================= -->
+        <!-- ERROR MESSAGE -->
+        <!-- ================================================= -->
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-exclamation-triangle me-2"></i>
+
+                @TempData["Error"]
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                </button>
+
+            </div>
+        }
+
+
+        <!-- ================================================= -->
+        <!-- PRODUCT COUNT -->
+        <!-- ================================================= -->
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+            <div class="text-muted">
+
+                <strong class="text-dark">
+                    @Model.Count()
+                </strong>
+
+                product@(Model.Count() == 1 ? "" : "s")
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- PRODUCTS -->
+        <!-- ================================================= -->
+
+        <div class="product-table-card">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle product-table">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th style="width:90px;">
+                                Image
+                            </th>
+
+                            <th>
+                                Product
+                            </th>
+
+                            <th>
+                                Category
+                            </th>
+
+                            <th>
+                                Price
+                            </th>
+
+                            <th>
+                                Stock
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th style="width:260px;">
+                                Actions
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @if (!Model.Any())
+                        {
+                            <!-- ================================= -->
+                            <!-- EMPTY STATE -->
+                            <!-- ================================= -->
+
+                            <tr>
+
+                                <td colspan="7">
+
+                                    <div class="empty-state">
+
+                                        <div class="empty-icon">
+
+                                            <i class="bi bi-box-seam"></i>
+
+                                        </div>
+
+                                        <h4 class="fw-bold mb-2">
+                                            No products yet
+                                        </h4>
+
+                                        <p class="text-muted mb-4">
+                                            Add your first product to CrisKidsWear.
+                                        </p>
+
+                                        <a asp-action="Create"
+                                           class="btn btn-dark px-4">
+
+                                            <i class="bi bi-plus-lg me-2"></i>
+                                            Add Product
+
+                                        </a>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var product in Model)
+                            {
+                                <tr>
+
+                                    <!-- ========================= -->
+                                    <!-- IMAGE -->
+                                    <!-- ========================= -->
+
+                                    <td>
+
+                                        @if (!string.IsNullOrWhiteSpace(product.MainImageUrl))
+                                        {
+                                            <img src="@product.MainImageUrl"
+                                                 alt="@product.Name"
+                                                 class="product-image" />
+                                        }
+                                        else
+                                        {
+                                            <div class="product-image-placeholder">
+
+                                                <i class="bi bi-image"></i>
+
+                                            </div>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ========================= -->
+                                    <!-- PRODUCT -->
+                                    <!-- ========================= -->
+
+                                    <td>
+
+                                        <div class="product-name">
+                                            @product.Name
+                                        </div>
+
+                                        <div class="product-id">
+                                            Product ID: @product.Id
+                                        </div>
+
+
+                                        <div class="mt-2">
+
+                                            @if (product.IsFeatured)
+                                            {
+                                                <span class="badge bg-warning text-dark featured-badge me-1">
+                                                    Featured
+                                                </span>
+                                            }
+
+                                            @if (product.IsNewArrival)
+                                            {
+                                                <span class="badge bg-info featured-badge me-1">
+                                                    New Arrival
+                                                </span>
+                                            }
+
+                                            @if (product.IsBestSeller)
+                                            {
+                                                <span class="badge bg-dark featured-badge">
+                                                    Best Seller
+                                                </span>
+                                            }
+
+                                        </div>
+
+                                    </td>
+
+
+                                    <!-- ========================= -->
+                                    <!-- CATEGORY -->
+                                    <!-- ========================= -->
+
+                                    <td>
+
+                                        @if (product.Category != null)
+                                        {
+                                            <span>
+                                                @product.Category.Name
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                No category
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ========================= -->
+                                    <!-- PRICE -->
+                                    <!-- ========================= -->
+
+                                    <td>
+
+                                        @if (product.DiscountPrice.HasValue &&
+                                             product.DiscountPrice.Value < product.Price)
+                                        {
+                                            <div class="fw-bold">
+
+                                                ₹@product.DiscountPrice.Value.ToString("0.00")
+
+                                            </div>
+
+                                            <div class="small text-muted text-decoration-line-through">
+
+                                                ₹@product.Price.ToString("0.00")
+
+                                            </div>
+
+                                            @if (product.DiscountPercentage > 0)
+                                            {
+                                                <div class="small text-success mt-1">
+
+                                                    @product.DiscountPercentage.ToString("0")
+                                                    % off
+
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <strong>
+                                                ₹@product.Price.ToString("0.00")
+                                            </strong>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ========================= -->
+                                    <!-- STOCK -->
+                                    <!-- ========================= -->
+
+                                    <td>
+
+                                        @if (product.StockQuantity <= 0)
+                                        {
+                                            <span class="badge bg-danger status-badge">
+                                                Out of stock
+                                            </span>
+                                        }
+                                        else if (product.StockQuantity <= 5)
+                                        {
+                                            <span class="badge bg-warning text-dark status-badge">
+                                                <span class="stock-number">
+                                                    @product.StockQuantity
+                                                </span>
+                                                left
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success status-badge">
+                                                <span class="stock-number">
+                                                    @product.StockQuantity
+                                                </span>
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ========================= -->
+                                    <!-- STATUS -->
+                                    <!-- ========================= -->
+
+                                    <td>
+
+                                        @if (product.IsActive)
+                                        {
+                                            <span class="badge bg-success status-badge">
+                                                Active
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary status-badge">
+                                                Inactive
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ========================= -->
+                                    <!-- ACTIONS -->
+                                    <!-- ========================= -->
+
+                                    <td>
+
+                                        <div class="action-buttons">
+
+                                            <!-- EDIT -->
+
+                                            <a asp-action="Edit"
+                                               asp-route-id="@product.Id"
+                                               class="btn btn-sm btn-outline-primary">
+
+                                                <i class="bi bi-pencil me-1"></i>
+                                                Edit
+
+                                            </a>
+
+
+                                            @if (product.IsActive)
+                                            {
+                                                <!-- DEACTIVATE -->
+
+                                                <form asp-action="Deactivate"
+                                                      asp-route-id="@product.Id"
+                                                      method="post"
+                                                      class="d-inline"
+                                                      onsubmit="return confirm('Are you sure you want to deactivate this product?');">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-outline-warning">
+
+                                                        <i class="bi bi-eye-slash me-1"></i>
+                                                        Deactivate
+
+                                                    </button>
+
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <!-- ACTIVATE -->
+
+                                                <form asp-action="Activate"
+                                                      asp-route-id="@product.Id"
+                                                      method="post"
+                                                      class="d-inline">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-outline-success">
+
+                                                        <i class="bi bi-eye me-1"></i>
+                                                        Activate
+
+                                                    </button>
+
+                                                </form>
+                                            }
+
+
+                                            <!-- DELETE -->
+
+                                            <form asp-action="Delete"
+                                                  asp-route-id="@product.Id"
+                                                  method="post"
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('This will permanently delete the product. Continue?');">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-outline-danger">
+
+                                                    <i class="bi bi-trash3 me-1"></i>
+                                                    Delete
+
+                                                </button>
+
+                                            </form>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,379 @@
+@model IEnumerable<KidsWearStore.Models.Wishlist>
+
+@{
+    ViewData["Title"] = "My Wishlist";
+}
+
+<div class="wishlist-page">
+    <div class="wishlist-header">
+        <div>
+            <h1> My Wishlist</h1>
+            <p>Save your favorite kids' products and come back to them anytime.</p>
+        </div>
+
+        <a asp-controller="Products"
+           asp-action="Index"
+           class="btn btn-primary">
+             Continue Shopping
+        </a>
+    </div>
+
+    @if (TempData["WishlistMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["WishlistMessage"]
+        </div>
+    }
+
+    @if (TempData["WishlistError"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["WishlistError"]
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="wishlist-empty">
+            <div class="empty-icon"></div>
+
+            <h2>Your wishlist is empty</h2>
+
+            <p>
+                You haven't saved any products yet.
+                Browse our collection and add your favorites here.
+            </p>
+
+            <a asp-controller="Products"
+               asp-action="Index"
+               class="btn btn-dark">
+                Explore Products
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="wishlist-grid">
+            @foreach (var item in Model)
+            {
+                var product = item.Product;
+
+                if (product == null)
+                {
+                    continue;
+                }
+
+                var imageUrl = string.IsNullOrWhiteSpace(product.MainImageUrl)
+                    ? "/images/no-image.png"
+                    : product.MainImageUrl;
+
+                var displayPrice = product.DiscountPrice ?? product.Price;
+
+                <div class="wishlist-card">
+
+                    <div class="wishlist-image-wrapper">
+                        <a asp-controller="Products"
+                           asp-action="Details"
+                           asp-route-id="@product.Id">
+
+                            <img src="@imageUrl"
+                                 alt="@product.Name"
+                                 class="wishlist-image" />
+                        </a>
+
+                        @if (product.DiscountPercentage > 0)
+                        {
+                            <span class="wishlist-badge">
+                                -@product.DiscountPercentage%
+                            </span>
+                        }
+                    </div>
+
+                    <div class="wishlist-content">
+
+                        <div class="wishlist-category">
+                            @product.Category?.Name
+                        </div>
+
+                        <h3>
+                            <a asp-controller="Products"
+                               asp-action="Details"
+                               asp-route-id="@product.Id">
+                                @product.Name
+                            </a>
+                        </h3>
+
+                        @if (!string.IsNullOrWhiteSpace(product.ShortDescription))
+                        {
+                            <p class="wishlist-description">
+                                @product.ShortDescription
+                            </p>
+                        }
+
+                        <div class="wishlist-price">
+                            @if (product.DiscountPrice.HasValue &&
+                                 product.DiscountPrice.Value < product.Price)
+                            {
+                                <span class="current-price">
+                                    ₹@product.DiscountPrice.Value.ToString("N2")
+                                </span>
+
+                                <span class="old-price">
+                                    ₹@product.Price.ToString("N2")
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="current-price">
+                                    ₹@product.Price.ToString("N2")
+                                </span>
+                            }
+                        </div>
+
+                        <div class="wishlist-stock">
+                            @if (product.StockQuantity > 0)
+                            {
+                                <span class="in-stock">
+                                     In Stock
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="out-stock">
+                                    Out of Stock
+                                </span>
+                            }
+                        </div>
+
+                        <div class="wishlist-actions">
+
+                            <a asp-controller="Products"
+                               asp-action="Details"
+                               asp-route-id="@product.Id"
+                               class="btn btn-dark">
+                                View Product
+                            </a>
+
+                            <form asp-controller="Wishlist"
+                                  asp-action="Remove"
+                                  method="post">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="productId"
+                                       value="@product.Id" />
+
+                                <button type="submit"
+                                        class="btn btn-outline-danger"
+                                        title="Remove from wishlist">
+                                     Remove
+                                </button>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .wishlist-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 30px 20px 60px;
+    }
+
+    .wishlist-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .wishlist-header h1 {
+        margin: 0 0 8px;
+        font-size: 32px;
+        font-weight: 800;
+    }
+
+    .wishlist-header p {
+        margin: 0;
+        color: #666;
+    }
+
+    .wishlist-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+
+    .wishlist-card {
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .wishlist-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.10);
+    }
+
+    .wishlist-image-wrapper {
+        position: relative;
+        background: #f7f7f7;
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+    }
+
+    .wishlist-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .wishlist-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: #dc3545;
+        color: #fff;
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .wishlist-content {
+        padding: 18px;
+    }
+
+    .wishlist-category {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #888;
+        margin-bottom: 6px;
+    }
+
+    .wishlist-content h3 {
+        margin: 0 0 8px;
+        font-size: 19px;
+    }
+
+    .wishlist-content h3 a {
+        color: #18181b;
+        text-decoration: none;
+    }
+
+    .wishlist-content h3 a:hover {
+        text-decoration: underline;
+    }
+
+    .wishlist-description {
+        color: #666;
+        font-size: 14px;
+        line-height: 1.5;
+        min-height: 42px;
+        margin-bottom: 12px;
+    }
+
+    .wishlist-price {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .current-price {
+        font-size: 20px;
+        font-weight: 800;
+    }
+
+    .old-price {
+        color: #999;
+        text-decoration: line-through;
+        font-size: 14px;
+    }
+
+    .wishlist-stock {
+        margin-bottom: 16px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .in-stock {
+        color: #198754;
+    }
+
+    .out-stock {
+        color: #dc3545;
+    }
+
+    .wishlist-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .wishlist-actions .btn {
+        flex: 1;
+        white-space: nowrap;
+    }
+
+    .wishlist-empty {
+        text-align: center;
+        padding: 80px 20px;
+        border: 1px dashed #d5d5d5;
+        border-radius: 20px;
+        background: #fafafa;
+    }
+
+    .empty-icon {
+        font-size: 70px;
+        color: #bbb;
+        margin-bottom: 15px;
+    }
+
+    .wishlist-empty h2 {
+        margin-bottom: 10px;
+        font-weight: 800;
+    }
+
+    .wishlist-empty p {
+        max-width: 500px;
+        margin: 0 auto 25px;
+        color: #666;
+    }
+
+    @@media (max-width: 900px) {
+        .wishlist-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .wishlist-page {
+            padding: 20px 14px 40px;
+        }
+
+        .wishlist-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .wishlist-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .wishlist-actions {
+            flex-direction: column;
+        }
+    }
+</style>

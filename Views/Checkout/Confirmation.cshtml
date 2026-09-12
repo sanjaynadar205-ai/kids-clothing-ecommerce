@@ -1,0 +1,475 @@
+@model KidsWearStore.Models.Order
+
+@{
+    ViewData["Title"] = "Order Confirmed";
+}
+
+<div class="confirmation-page">
+
+    <div class="confirmation-card">
+
+        <div class="success-icon">
+            <i class="bi bi-check-lg"></i>
+        </div>
+
+        <span class="eyebrow">ORDER CONFIRMED</span>
+
+        <h1>Thank you for your order</h1>
+
+        <p class="confirmation-message">
+            Your order has been successfully placed.
+            We will keep you updated as it moves through each stage.
+        </p>
+
+        <div class="order-number-box">
+            <span>Order number</span>
+            <strong>@Model.OrderNumber</strong>
+        </div>
+
+        <div class="confirmation-alert">
+            <i class="bi bi-info-circle"></i>
+
+            <div>
+                <strong>
+                    @if (Model.PaymentStatus == "Paid")
+                    {
+                        <text>Payment received successfully.</text>
+                    }
+                    else
+                    {
+                        <text>Your order has been placed successfully.</text>
+                    }
+                </strong>
+
+                <p>
+                    Payment method: @Model.PaymentMethod
+                </p>
+            </div>
+        </div>
+
+        <div class="delivery-box">
+
+            <div class="section-heading">
+                <i class="bi bi-truck"></i>
+
+                <div>
+                    <h2>Delivery details</h2>
+                    <p>Your order will be delivered to:</p>
+                </div>
+            </div>
+
+            <div class="delivery-address">
+                <strong>@Model.CustomerName</strong>
+
+                <span>
+                    @Model.ShippingAddress
+                </span>
+
+                <span>
+                    @Model.City, @Model.State - @Model.PostalCode
+                </span>
+
+                <span>
+                    @Model.CustomerPhone
+                </span>
+            </div>
+
+        </div>
+
+        <div class="items-section">
+
+            <div class="section-heading">
+                <i class="bi bi-box-seam"></i>
+
+                <div>
+                    <h2>Order items</h2>
+                    <p>@Model.OrderItems.Count item(s)</p>
+                </div>
+            </div>
+
+            <div class="items-list">
+
+                @foreach (var item in Model.OrderItems)
+                {
+                    <div class="confirmation-item">
+
+                        <div class="item-image">
+
+                            @if (item.Product != null &&
+                                 !string.IsNullOrWhiteSpace(item.Product.MainImageUrl))
+                            {
+                                <img src="@item.Product.MainImageUrl"
+                                     alt="@item.Product.Name" />
+                            }
+                            else
+                            {
+                                <i class="bi bi-image"></i>
+                            }
+
+                        </div>
+
+                        <div class="item-details">
+
+                            <strong>
+                                @(item.Product?.Name ?? "Product")
+                            </strong>
+
+                            <span>
+                                Quantity: @item.Quantity
+                            </span>
+
+                        </div>
+
+                        <strong class="item-price">
+                            ₹@item.TotalPrice.ToString("N2")
+                        </strong>
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+        <div class="order-total">
+
+            <div>
+                <span>Subtotal</span>
+                <strong>₹@Model.Subtotal.ToString("N2")</strong>
+            </div>
+
+            <div>
+                <span>Discount</span>
+
+                <strong>
+                    @(Model.Discount > 0
+                        ? "- ₹" + Model.Discount.ToString("N2")
+                        : "₹0.00")
+                </strong>
+            </div>
+
+            <div>
+                <span>Shipping</span>
+
+                <strong>
+                    @(Model.TotalAmount - Model.Subtotal + Model.Discount == 0
+                        ? "FREE"
+                        : "₹49.00")
+                </strong>
+            </div>
+
+            <div class="grand-total">
+                <span>Total</span>
+                <strong>₹@Model.TotalAmount.ToString("N2")</strong>
+            </div>
+
+        </div>
+
+        <div class="confirmation-actions">
+
+            <a asp-controller="Orders"
+               asp-action="Details"
+               asp-route-id="@Model.Id"
+               class="btn btn-dark">
+                <i class="bi bi-box-seam"></i>
+                Track Order
+            </a>
+
+            <a asp-controller="Products"
+               asp-action="Index"
+               class="btn btn-outline-dark">
+                <i class="bi bi-bag"></i>
+                Continue Shopping
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+    .confirmation-page {
+        min-height: calc(100vh - 120px);
+        padding: 50px 20px 80px;
+        background: #f8f8f8;
+    }
+
+    .confirmation-card {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 45px;
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 22px;
+        box-shadow: 0 15px 45px rgba(0,0,0,.05);
+    }
+
+    .success-icon {
+        width: 68px;
+        height: 68px;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #111;
+        color: #fff;
+        font-size: 30px;
+    }
+
+    .eyebrow {
+        display: block;
+        text-align: center;
+        color: #777;
+        font-size: 11px;
+        letter-spacing: 2px;
+        font-weight: 700;
+    }
+
+    .confirmation-card h1 {
+        margin: 9px 0 10px;
+        text-align: center;
+        font-size: clamp(28px, 5vw, 40px);
+        letter-spacing: -1.2px;
+    }
+
+    .confirmation-message {
+        max-width: 570px;
+        margin: 0 auto 25px;
+        text-align: center;
+        color: #777;
+        line-height: 1.7;
+        font-size: 14px;
+    }
+
+    .order-number-box {
+        padding: 17px 20px;
+        margin-bottom: 18px;
+        border: 1px solid #e8e8e8;
+        border-radius: 12px;
+        background: #fafafa;
+        text-align: center;
+    }
+
+    .order-number-box span {
+        display: block;
+        margin-bottom: 5px;
+        color: #888;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .8px;
+    }
+
+    .order-number-box strong {
+        font-size: 18px;
+    }
+
+    .confirmation-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 13px;
+        padding: 17px;
+        margin-bottom: 22px;
+        border: 1px solid #dce8de;
+        border-radius: 12px;
+        background: #f4faf5;
+        color: #245c35;
+    }
+
+    .confirmation-alert > i {
+        font-size: 19px;
+        margin-top: 1px;
+    }
+
+    .confirmation-alert strong {
+        font-size: 13px;
+    }
+
+    .confirmation-alert p {
+        margin: 4px 0 0;
+        font-size: 12px;
+        color: #52705b;
+    }
+
+    .delivery-box,
+    .items-section {
+        margin-top: 22px;
+        border: 1px solid #e8e8e8;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .section-heading {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 18px 20px;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .section-heading > i {
+        font-size: 21px;
+        color: #444;
+    }
+
+    .section-heading h2 {
+        margin: 0;
+        font-size: 15px;
+    }
+
+    .section-heading p {
+        margin: 3px 0 0;
+        color: #888;
+        font-size: 12px;
+    }
+
+    .delivery-address {
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .delivery-address strong {
+        font-size: 14px;
+    }
+
+    .delivery-address span {
+        color: #666;
+    }
+
+    .items-list {
+        padding: 0 20px;
+    }
+
+    .confirmation-item {
+        display: grid;
+        grid-template-columns: 60px 1fr auto;
+        align-items: center;
+        gap: 14px;
+        padding: 15px 0;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .confirmation-item:last-child {
+        border-bottom: 0;
+    }
+
+    .item-image {
+        width: 60px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 9px;
+        background: #f5f5f5;
+        color: #999;
+        font-size: 21px;
+    }
+
+    .item-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .item-details {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .item-details strong {
+        font-size: 13px;
+    }
+
+    .item-details span {
+        color: #888;
+        font-size: 12px;
+    }
+
+    .item-price {
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .order-total {
+        margin-top: 22px;
+        padding: 20px;
+        border: 1px solid #e8e8e8;
+        border-radius: 15px;
+    }
+
+    .order-total > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 8px 0;
+        font-size: 13px;
+    }
+
+    .order-total span {
+        color: #777;
+    }
+
+    .grand-total {
+        margin-top: 8px;
+        padding-top: 17px !important;
+        border-top: 1px solid #dddddd;
+        font-size: 16px !important;
+    }
+
+    .grand-total span {
+        color: #222;
+        font-weight: 700;
+    }
+
+    .grand-total strong {
+        font-size: 20px;
+    }
+
+    .confirmation-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 25px;
+    }
+
+    .confirmation-actions .btn {
+        flex: 1;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 600px) {
+        .confirmation-page {
+            padding: 25px 12px 50px;
+        }
+
+        .confirmation-card {
+            padding: 28px 17px;
+            border-radius: 17px;
+        }
+
+        .confirmation-actions {
+            flex-direction: column;
+        }
+
+        .confirmation-item {
+            grid-template-columns: 55px 1fr;
+        }
+
+        .item-image {
+            width: 55px;
+            height: 65px;
+        }
+
+        .item-price {
+            grid-column: 2;
+        }
+    }
+</style>

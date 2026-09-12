@@ -1,0 +1,644 @@
+@model KidsWearStore.Controllers.AdminOrdersViewModel
+
+@{
+    ViewData["Title"] = "Order Management";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- PAGE HEADER -->
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+
+        <div>
+            <div class="text-uppercase small fw-semibold text-muted mb-1"
+                 style="letter-spacing:.12em;">
+                Administration
+            </div>
+
+            <h1 class="fw-bold mb-1">
+                Order Management
+            </h1>
+
+            <p class="text-muted mb-0">
+                Review, filter and manage customer orders.
+            </p>
+        </div>
+
+        <div>
+            <a asp-controller="AdminDashboard"
+               asp-action="Index"
+               class="btn btn-outline-dark">
+                <i class="bi bi-grid-1x2 me-2"></i>
+                Dashboard
+            </a>
+        </div>
+
+    </div>
+
+
+    <!-- SUMMARY CARDS -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-6 col-xl-2">
+            <div class="card border-0 shadow-sm h-100 rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="small text-muted mb-1">
+                                Total Orders
+                            </div>
+
+                            <div class="fs-3 fw-bold">
+                                @Model.TotalOrders
+                            </div>
+                        </div>
+
+                        <div class="rounded-3 bg-light p-2">
+                            <i class="bi bi-bag-check fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-6 col-xl-2">
+            <div class="card border-0 shadow-sm h-100 rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="small text-muted mb-1">
+                                Pending
+                            </div>
+
+                            <div class="fs-3 fw-bold">
+                                @Model.PendingOrders
+                            </div>
+                        </div>
+
+                        <div class="rounded-3 bg-warning-subtle p-2">
+                            <i class="bi bi-hourglass-split fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-6 col-xl-2">
+            <div class="card border-0 shadow-sm h-100 rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="small text-muted mb-1">
+                                Confirmed
+                            </div>
+
+                            <div class="fs-3 fw-bold">
+                                @Model.ConfirmedOrders
+                            </div>
+                        </div>
+
+                        <div class="rounded-3 bg-info-subtle p-2">
+                            <i class="bi bi-check2-circle fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-6 col-xl-2">
+            <div class="card border-0 shadow-sm h-100 rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="small text-muted mb-1">
+                                Processing
+                            </div>
+
+                            <div class="fs-3 fw-bold">
+                                @Model.ProcessingOrders
+                            </div>
+                        </div>
+
+                        <div class="rounded-3 bg-primary-subtle p-2">
+                            <i class="bi bi-box-seam fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-6 col-xl-2">
+            <div class="card border-0 shadow-sm h-100 rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="small text-muted mb-1">
+                                Shipped
+                            </div>
+
+                            <div class="fs-3 fw-bold">
+                                @Model.ShippedOrders
+                            </div>
+                        </div>
+
+                        <div class="rounded-3 bg-secondary-subtle p-2">
+                            <i class="bi bi-truck fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-6 col-xl-2">
+            <div class="card border-0 shadow-sm h-100 rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="small text-muted mb-1">
+                                Delivered
+                            </div>
+
+                            <div class="fs-3 fw-bold">
+                                @Model.DeliveredOrders
+                            </div>
+                        </div>
+
+                        <div class="rounded-3 bg-success-subtle p-2">
+                            <i class="bi bi-house-check fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- FILTER CARD -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-body p-4">
+
+            <form asp-controller="AdminOrders"
+                  asp-action="Index"
+                  method="get">
+
+                <div class="row g-3 align-items-end">
+
+                    <!-- SEARCH -->
+                    <div class="col-lg-5">
+
+                        <label class="form-label fw-semibold">
+                            Search orders
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text bg-white">
+                                <i class="bi bi-search"></i>
+                            </span>
+
+                            <input type="text"
+                                   name="search"
+                                   value="@Model.Search"
+                                   class="form-control"
+                                   placeholder="Order number, customer, email or phone" />
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- STATUS -->
+                    <div class="col-lg-3">
+
+                        <label class="form-label fw-semibold">
+                            Order status
+                        </label>
+
+                        <select name="status"
+                                class="form-select">
+
+                            <option value="">
+                                All statuses
+                            </option>
+
+                            @foreach (var status in Enum.GetValues<KidsWearStore.Models.OrderStatus>())
+                            {
+                                if (Model.Status == status)
+                                {
+                                    <option value="@status" selected>
+                                        @status
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@status">
+                                        @status
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- PAYMENT STATUS -->
+                    <div class="col-lg-2">
+
+                        <label class="form-label fw-semibold">
+                            Payment
+                        </label>
+
+                        <select name="paymentStatus"
+                                class="form-select">
+
+                            <option value="">
+                                All
+                            </option>
+
+                            @if (Model.PaymentStatus == "Pending")
+                            {
+                                <option value="Pending" selected>
+                                    Pending
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="Pending">
+                                    Pending
+                                </option>
+                            }
+
+                            @if (Model.PaymentStatus == "Created")
+                            {
+                                <option value="Created" selected>
+                                    Created
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="Created">
+                                    Created
+                                </option>
+                            }
+
+                            @if (Model.PaymentStatus == "Paid")
+                            {
+                                <option value="Paid" selected>
+                                    Paid
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="Paid">
+                                    Paid
+                                </option>
+                            }
+
+                            @if (Model.PaymentStatus == "Failed")
+                            {
+                                <option value="Failed" selected>
+                                    Failed
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="Failed">
+                                    Failed
+                                </option>
+                            }
+
+                            @if (Model.PaymentStatus == "Cancelled")
+                            {
+                                <option value="Cancelled" selected>
+                                    Cancelled
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="Cancelled">
+                                    Cancelled
+                                </option>
+                            }
+
+                            @if (Model.PaymentStatus == "Refund Pending")
+                            {
+                                <option value="Refund Pending" selected>
+                                    Refund Pending
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="Refund Pending">
+                                    Refund Pending
+                                </option>
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- BUTTONS -->
+                    <div class="col-lg-2 d-flex gap-2">
+
+                        <button type="submit"
+                                class="btn btn-dark flex-grow-1">
+                            <i class="bi bi-funnel me-2"></i>
+                            Filter
+                        </button>
+
+                        <a asp-controller="AdminOrders"
+                           asp-action="Index"
+                           class="btn btn-outline-secondary"
+                           title="Clear filters">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- ORDERS TABLE -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+
+        <div class="card-header bg-white border-0 p-4">
+
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+
+                <div>
+                    <h5 class="fw-bold mb-1">
+                        Orders
+                    </h5>
+
+                    <p class="text-muted small mb-0">
+                        @Model.Orders.Count order(s) found
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        @if (Model.Orders.Count == 0)
+        {
+            <div class="text-center py-5 px-4">
+
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light mb-3"
+                     style="width:70px;height:70px;">
+                    <i class="bi bi-inbox fs-2 text-muted"></i>
+                </div>
+
+                <h5 class="fw-bold">
+                    No orders found
+                </h5>
+
+                <p class="text-muted mb-0">
+                    Try changing your search or filter criteria.
+                </p>
+
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+                            <th class="px-4 py-3">
+                                Order
+                            </th>
+
+                            <th class="py-3">
+                                Customer
+                            </th>
+
+                            <th class="py-3">
+                                Date
+                            </th>
+
+                            <th class="py-3">
+                                Items
+                            </th>
+
+                            <th class="py-3">
+                                Payment
+                            </th>
+
+                            <th class="py-3">
+                                Status
+                            </th>
+
+                            <th class="py-3 text-end px-4">
+                                Total
+                            </th>
+
+                            <th class="py-3 text-end px-4">
+                                Action
+                            </th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @foreach (var order in Model.Orders)
+                        {
+                            var statusClass = order.Status switch
+                            {
+                                KidsWearStore.Models.OrderStatus.Pending
+                                    => "bg-warning-subtle text-dark",
+
+                                KidsWearStore.Models.OrderStatus.Confirmed
+                                    => "bg-info-subtle text-dark",
+
+                                KidsWearStore.Models.OrderStatus.Processing
+                                    => "bg-primary-subtle text-dark",
+
+                                KidsWearStore.Models.OrderStatus.Shipped
+                                    => "bg-secondary-subtle text-dark",
+
+                                KidsWearStore.Models.OrderStatus.Delivered
+                                    => "bg-success-subtle text-dark",
+
+                                KidsWearStore.Models.OrderStatus.Cancelled
+                                    => "bg-danger-subtle text-danger",
+
+                                _ => "bg-light text-dark"
+                            };
+
+                            var paymentClass =
+                                string.Equals(
+                                    order.PaymentStatus,
+                                    "Paid",
+                                    StringComparison.OrdinalIgnoreCase)
+                                ? "bg-success-subtle text-success"
+                                : string.Equals(
+                                    order.PaymentStatus,
+                                    "Failed",
+                                    StringComparison.OrdinalIgnoreCase)
+                                    ? "bg-danger-subtle text-danger"
+                                    : "bg-light text-dark";
+
+                            <tr>
+
+                                <!-- ORDER -->
+                                <td class="px-4">
+
+                                    <div class="fw-semibold">
+                                        #@order.OrderNumber
+                                    </div>
+
+                                    <div class="small text-muted">
+                                        ID @order.Id
+                                    </div>
+
+                                </td>
+
+
+                                <!-- CUSTOMER -->
+                                <td>
+
+                                    <div class="fw-semibold">
+                                        @order.CustomerName
+                                    </div>
+
+                                    <div class="small text-muted">
+                                        @order.CustomerEmail
+                                    </div>
+
+                                </td>
+
+
+                                <!-- DATE -->
+                                <td>
+
+                                    <div class="fw-semibold">
+                                        @order.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")
+                                    </div>
+
+                                    <div class="small text-muted">
+                                        @order.CreatedAt.ToLocalTime().ToString("hh:mm tt")
+                                    </div>
+
+                                </td>
+
+
+                                <!-- ITEMS -->
+                                <td>
+
+                                    <span class="fw-semibold">
+                                        @(order.OrderItems?.Sum(x => x.Quantity) ?? 0)
+                                    </span>
+
+                                    <span class="text-muted small">
+                                        item(s)
+                                    </span>
+
+                                </td>
+
+
+                                <!-- PAYMENT -->
+                                <td>
+
+                                    <div class="small fw-semibold">
+                                        @order.PaymentMethod
+                                    </div>
+
+                                    <span class="badge rounded-pill @paymentClass">
+                                        @order.PaymentStatus
+                                    </span>
+
+                                </td>
+
+
+                                <!-- STATUS -->
+                                <td>
+
+                                    <span class="badge rounded-pill @statusClass">
+                                        @order.Status
+                                    </span>
+
+                                </td>
+
+
+                                <!-- TOTAL -->
+                                <td class="text-end px-4">
+
+                                    <span class="fw-bold">
+                                        ₹@order.TotalAmount.ToString("N2")
+                                    </span>
+
+                                </td>
+
+
+                                <!-- ACTION -->
+                                <td class="text-end px-4">
+
+                                    <a asp-controller="AdminOrders"
+                                       asp-action="Details"
+                                       asp-route-id="@order.Id"
+                                       class="btn btn-sm btn-outline-dark">
+
+                                        <i class="bi bi-eye me-1"></i>
+                                        View
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+
+<style>
+    .card {
+        transition: box-shadow .2s ease;
+    }
+
+    .table > :not(caption) > * > * {
+        padding-top: .95rem;
+        padding-bottom: .95rem;
+    }
+
+    .badge {
+        font-weight: 600;
+        padding: .45rem .65rem;
+    }
+
+    @@media (max-width: 991.98px) {
+        .table {
+            min-width: 1050px;
+        }
+    }
+</style>

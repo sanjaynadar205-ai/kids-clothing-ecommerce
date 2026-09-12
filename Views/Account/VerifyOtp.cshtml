@@ -1,0 +1,38 @@
+@{
+    ViewData["Title"] = "Verify your email";
+    var email = ViewBag.Email as string ?? "your email";
+    var devOtp = ViewBag.DevelopmentOtp as string;
+}
+
+<div class="auth-shell">
+    <div class="auth-card auth-otp-card">
+        <div class="auth-brand"><span class="auth-mark"><i class="bi bi-shield-lock"></i></span><span>KidsWearStore</span></div>
+        <div class="auth-heading">
+            <span class="section-kicker">ACCOUNT SECURITY</span>
+            <h1>Verify your email</h1>
+            <p>Enter the 6-digit code sent to <strong>@email</strong>. The code is valid for 5 minutes.</p>
+        </div>
+
+        @if (TempData["Info"] != null) { <div class="alert alert-info small"><i class="bi bi-info-circle me-2"></i>@TempData["Info"]</div> }
+        @if (TempData["Success"] != null) { <div class="alert alert-success small"><i class="bi bi-check-circle me-2"></i>@TempData["Success"]</div> }
+        @if (TempData["Error"] != null) { <div class="alert alert-danger small"><i class="bi bi-exclamation-circle me-2"></i>@TempData["Error"]</div> }
+
+        <form asp-action="VerifyOtp" method="post" class="auth-form">
+            @Html.AntiForgeryToken()
+            <label for="code">Verification code</label>
+            <input id="code" name="code" class="form-control otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000" required autofocus />
+            <button type="submit" class="btn btn-dark w-100 auth-submit">Verify email <i class="bi bi-check2 ms-2"></i></button>
+        </form>
+
+        @if (!string.IsNullOrWhiteSpace(devOtp))
+        {
+            <div class="dev-otp"><span>Development OTP</span><strong>@devOtp</strong><small>Shown only while the application is running in Development with the development-code setting enabled.</small></div>
+        }
+
+        <form asp-action="ResendOtp" method="post" class="text-center mt-3">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-link text-decoration-none">Send a new code</button>
+        </form>
+        <p class="auth-switch"><a asp-action="Register"><i class="bi bi-arrow-left me-1"></i>Back to registration</a></p>
+    </div>
+</div>

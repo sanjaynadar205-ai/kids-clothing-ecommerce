@@ -1,0 +1,175 @@
+﻿@using KidsWearStore.Models
+@{
+    ViewData["Title"] = "Home";
+    var categories = ViewBag.Categories as List<Category> ?? new();
+    var featured = ViewBag.FeaturedProducts as List<Product> ?? new();
+    var arrivals = ViewBag.NewArrivals as List<Product> ?? new();
+    var best = ViewBag.BestSellers as List<Product> ?? new();
+    var offers = ViewBag.Offers as List<Product> ?? new();
+    var latest = ViewBag.LatestProducts as List<Product> ?? new();
+    var heroProduct = featured.FirstOrDefault() ?? arrivals.FirstOrDefault() ?? latest.FirstOrDefault();
+    var displayFeatured = featured.Any() ? featured : latest;
+}
+
+<main class="store-home">
+    <section class="home-hero-pro">
+        <div class="container-xl home-hero-grid">
+            <div class="home-hero-copy">
+                <span class="eyebrow"><i class="bi bi-stars"></i> NEW SEASON 2026</span>
+                <h1>Made for <span>little moments.</span></h1>
+                <p>Thoughtfully designed kidswear with comfortable fabrics, easy everyday fits and a polished look for every occasion.</p>
+                <div class="home-hero-actions">
+                    <a asp-controller="Products" asp-action="Index" class="btn btn-dark btn-lg px-4">Shop the collection <i class="bi bi-arrow-right ms-2"></i></a>
+                    <a href="#featured" class="home-text-link">Explore bestsellers <i class="bi bi-arrow-down"></i></a>
+                </div>
+                <div class="home-proof-row">
+                    <div><i class="bi bi-shield-check"></i><span>Secure checkout</span></div>
+                    <div><i class="bi bi-truck"></i><span>Reliable delivery</span></div>
+                    <div><i class="bi bi-arrow-repeat"></i><span>Easy returns</span></div>
+                </div>
+            </div>
+            <div class="home-hero-visual">
+                <div class="hero-blob hero-blob-one"></div>
+                <div class="hero-blob hero-blob-two"></div>
+                <div class="hero-product-stage">
+                    @if (heroProduct != null && !string.IsNullOrWhiteSpace(heroProduct.MainImageUrl))
+                    {
+                        <img src="@heroProduct.MainImageUrl" alt="@heroProduct.Name" />
+                    }
+                    else
+                    {
+                        <div class="hero-empty"><i class="bi bi-bag-heart"></i><span>Kidswear collection</span></div>
+                    }
+                    <div class="hero-product-tag"><small>FEATURED</small><strong>@(heroProduct?.Category?.Name ?? "Kidswear")</strong></div>
+                </div>
+                <div class="hero-floating hero-floating-top"><strong>New</strong><span>2026 collection</span></div>
+                <div class="hero-floating hero-floating-bottom"><i class="bi bi-patch-check-fill"></i><span>Quality checked</span></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="home-service-strip">
+        <div class="container-xl service-grid">
+            <div><i class="bi bi-truck"></i><div><strong>Delivery across India</strong><span>Reliable shipping on every order</span></div></div>
+            <div><i class="bi bi-credit-card"></i><div><strong>Secure payments</strong><span>Razorpay and cash on delivery</span></div></div>
+            <div><i class="bi bi-box-seam"></i><div><strong>Carefully packed</strong><span>Every order prepared with care</span></div></div>
+            <div><i class="bi bi-headset"></i><div><strong>Customer support</strong><span>We are here when you need us</span></div></div>
+        </div>
+    </section>
+
+    @if (categories.Any())
+    {
+        <section class="home-section-pro">
+            <div class="container-xl">
+                <div class="home-section-head">
+                    <div><span class="section-kicker">SHOP BY CATEGORY</span><h2>Find their everyday favourites</h2></div>
+                    <a asp-controller="Products" asp-action="Index">View all categories <i class="bi bi-arrow-up-right"></i></a>
+                </div>
+                <div class="category-grid-pro">
+                    @foreach (var category in categories.Take(5))
+                    {
+                        <a asp-controller="Products" asp-action="Index" asp-route-categoryId="@category.Id" class="category-card-pro">
+                            <div class="category-card-image">
+                                @if (!string.IsNullOrWhiteSpace(category.ImageUrl)) { <img src="@category.ImageUrl" alt="@category.Name" /> }
+                                else { <i class="bi bi-grid-3x3-gap"></i> }
+                            </div>
+                            <div class="category-card-body"><span>COLLECTION</span><h3>@category.Name</h3><p>@(string.IsNullOrWhiteSpace(category.Description) ? "Explore the collection" : category.Description)</p><b>Shop now <i class="bi bi-arrow-right"></i></b></div>
+                        </a>
+                    }
+                    <a asp-controller="Products" asp-action="Index" asp-route-sort="discount" class="category-card-pro category-offer-card">
+                        <div class="offer-copy-pro"><span>LIMITED-TIME OFFERS</span><h3>Good style.<br />Better value.</h3><p>Discover selected kidswear at special prices.</p><b>Shop sale <i class="bi bi-arrow-right"></i></b></div>
+                    </a>
+                </div>
+            </div>
+        </section>
+    }
+
+    @if (displayFeatured.Any())
+    {
+        <section class="home-section-pro home-products-pro" id="featured">
+            <div class="container-xl">
+                <div class="home-section-head">
+                    <div><span class="section-kicker">CURATED FOR YOU</span><h2>Popular right now</h2></div>
+                    <a asp-controller="Products" asp-action="Index" asp-route-sort="featured">Shop all <i class="bi bi-arrow-up-right"></i></a>
+                </div>
+                <div class="product-grid-pro">
+                    @foreach (var product in displayFeatured.Take(8))
+                    {
+                        var sale = product.DiscountPrice.HasValue && product.DiscountPrice.Value < product.Price;
+                        var price = sale ? product.DiscountPrice!.Value : product.Price;
+                        <article class="product-card-pro">
+                            <a asp-controller="Products" asp-action="Details" asp-route-id="@product.Id" class="product-card-media">
+                                @if (product.IsNewArrival) { <span class="product-label label-dark">NEW</span> }
+                                else if (sale) { <span class="product-label label-sale">SALE</span> }
+                                @if (!string.IsNullOrWhiteSpace(product.MainImageUrl)) { <img src="@product.MainImageUrl" alt="@product.Name" loading="lazy" /> }
+                                else { <div class="product-image-empty"><i class="bi bi-image"></i><span>No image</span></div> }
+                                <span class="product-quick"><i class="bi bi-arrow-up-right"></i></span>
+                            </a>
+                            <div class="product-card-content">
+                                <span class="product-category">@(product.Category?.Name ?? "Kidswear")</span>
+                                <h3><a asp-controller="Products" asp-action="Details" asp-route-id="@product.Id">@product.Name</a></h3>
+                                <div class="product-price-pro"><strong>₹@price.ToString("N0")</strong>@if (sale) { <del>₹@product.Price.ToString("N0")</del> }</div>
+                                @if (product.StockQuantity > 0) { <span class="stock-note"><i class="bi bi-check2"></i> In stock</span> } else { <span class="stock-note out"><i class="bi bi-dash-circle"></i> Out of stock</span> }
+                            </div>
+                        </article>
+                    }
+                </div>
+            </div>
+        </section>
+    }
+
+    @if (offers.Any())
+    {
+        <section class="home-sale-banner">
+            <div class="container-xl sale-banner-inner">
+                <div><span class="section-kicker">THE EDIT</span><h2>Special prices on selected styles.</h2><p>Refresh their wardrobe with quality essentials and occasion-ready pieces.</p><a asp-controller="Products" asp-action="Index" asp-route-sort="discount" class="btn btn-light px-4">Shop offers <i class="bi bi-arrow-right ms-2"></i></a></div>
+                <div class="sale-product-stack">
+                    @foreach (var product in offers.Take(3))
+                    {
+                        <a asp-controller="Products" asp-action="Details" asp-route-id="@product.Id" class="sale-product-tile">
+                            @if (!string.IsNullOrWhiteSpace(product.MainImageUrl)) { <img src="@product.MainImageUrl" alt="@product.Name" loading="lazy" /> } else { <i class="bi bi-bag"></i> }
+                        </a>
+                    }
+                </div>
+            </div>
+        </section>
+    }
+
+    @if (arrivals.Any())
+    {
+        <section class="home-section-pro">
+            <div class="container-xl">
+                <div class="home-section-head"><div><span class="section-kicker">JUST IN</span><h2>New arrivals</h2></div><a asp-controller="Products" asp-action="Index" asp-route-sort="newest">See everything new <i class="bi bi-arrow-up-right"></i></a></div>
+                <div class="mini-product-grid-pro">
+                    @foreach (var product in arrivals.Take(4))
+                    {
+                        var price = product.DiscountPrice.HasValue && product.DiscountPrice.Value < product.Price ? product.DiscountPrice.Value : product.Price;
+                        <a asp-controller="Products" asp-action="Details" asp-route-id="@product.Id" class="mini-product-pro">
+                            <div>@if (!string.IsNullOrWhiteSpace(product.MainImageUrl)) { <img src="@product.MainImageUrl" alt="@product.Name" loading="lazy" /> } else { <i class="bi bi-image"></i> }</div>
+                            <span>@(product.Category?.Name ?? "Kidswear")</span><h3>@product.Name</h3><strong>₹@price.ToString("N0")</strong>
+                        </a>
+                    }
+                </div>
+            </div>
+        </section>
+    }
+
+    <section class="home-confidence">
+        <div class="container-xl confidence-grid">
+            <div><span class="section-kicker">WHY SHOP WITH US</span><h2>Designed around real family life.</h2><p>From first layers to special-day outfits, CrisKidsWear brings together comfortable styles that are easy to wear, easy to love and simple to shop.</p></div>
+            <div class="confidence-list">
+                <div><i class="bi bi-shield-check"></i><div><strong>Secure by design</strong><p>Protected sign-in and trusted payment options.</p></div></div>
+                <div><i class="bi bi-box-seam"></i><div><strong>Thoughtful presentation</strong><p>Products and orders are organised for a smoother experience.</p></div></div>
+                <div><i class="bi bi-heart"></i><div><strong>Built for families</strong><p>A clean shopping experience from discovery to delivery.</p></div></div>
+            </div>
+        </div>
+    </section>
+</main>
+
+@section Styles {
+<style>
+.store-home{background:#fff;color:#17151a}.home-hero-pro{background:linear-gradient(120deg,#fbf4f1 0%,#fff 58%,#f5edf0 100%);overflow:hidden}.home-hero-grid{min-height:650px;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:40px;padding:70px 24px}.home-hero-copy{max-width:650px}.eyebrow,.section-kicker{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:1.8px;color:#b83e62}.home-hero-copy h1{font-size:clamp(48px,6vw,82px);line-height:.98;letter-spacing:-3.5px;margin:18px 0 24px;font-weight:700}.home-hero-copy h1 span{font-family:"Playfair Display",serif;font-style:italic;font-weight:600;color:#b83e62}.home-hero-copy>p{max-width:560px;color:#67616a;font-size:17px;line-height:1.75;margin-bottom:30px}.home-hero-actions{display:flex;align-items:center;gap:25px;flex-wrap:wrap}.home-text-link{color:#17151a;font-size:14px;font-weight:700;border-bottom:1px solid #bbb;padding-bottom:4px}.home-text-link:hover{color:#b83e62}.home-proof-row{display:flex;gap:25px;margin-top:45px;flex-wrap:wrap}.home-proof-row div{display:flex;align-items:center;gap:8px;color:#666;font-size:12px;font-weight:600}.home-proof-row i{color:#b83e62;font-size:16px}.home-hero-visual{min-height:520px;position:relative;display:flex;align-items:center;justify-content:center}.hero-blob{position:absolute;border-radius:50%}.hero-blob-one{width:430px;height:430px;background:#ead4d7}.hero-blob-two{width:330px;height:330px;background:#f4e6df;right:0;bottom:15px}.hero-product-stage{position:relative;width:360px;height:470px;border-radius:190px 190px 30px 30px;background:#fff;box-shadow:0 35px 70px rgba(30,20,25,.14);overflow:hidden;display:flex;align-items:center;justify-content:center}.hero-product-stage img{width:100%;height:100%;object-fit:contain}.hero-empty{display:flex;flex-direction:column;gap:12px;align-items:center;color:#b83e62}.hero-empty i{font-size:70px}.hero-product-tag{position:absolute;left:22px;bottom:22px;background:rgba(255,255,255,.94);padding:12px 15px;min-width:160px}.hero-product-tag small{display:block;font-size:8px;font-weight:800;letter-spacing:1.4px;color:#8d858b}.hero-product-tag strong{font-size:14px;display:block;margin-top:4px}.hero-floating{position:absolute;background:#fff;box-shadow:0 18px 40px rgba(20,15,18,.12);padding:13px 16px;display:flex;flex-direction:column;z-index:2}.hero-floating strong{font-size:18px}.hero-floating span{font-size:10px;color:#777}.hero-floating-top{right:0;top:75px}.hero-floating-bottom{left:0;bottom:70px;flex-direction:row;align-items:center;gap:8px}.hero-floating-bottom i{color:#16845b}.home-service-strip{border-bottom:1px solid #eee8ea;border-top:1px solid #eee8ea;background:#fff}.service-grid{display:grid;grid-template-columns:repeat(4,1fr);padding:23px 24px}.service-grid>div{display:flex;align-items:center;gap:13px;padding:0 20px;border-right:1px solid #eee8ea}.service-grid>div:first-child{padding-left:0}.service-grid>div:last-child{border-right:0}.service-grid i{font-size:20px;color:#b83e62}.service-grid strong,.service-grid span{display:block}.service-grid strong{font-size:12px}.service-grid span{font-size:10px;color:#888;margin-top:3px}.home-section-pro{padding:90px 0 0}.home-section-head{display:flex;align-items:end;justify-content:space-between;gap:25px;margin-bottom:30px}.home-section-head h2{font-size:34px;letter-spacing:-1px;margin:8px 0 0}.home-section-head>a{font-size:12px;font-weight:700;color:#222;border-bottom:1px solid #ccc;padding-bottom:5px}.category-grid-pro{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.category-card-pro{min-height:400px;position:relative;overflow:hidden;background:#f6f2f2;color:#17151a}.category-card-image{height:245px;background:#eee8e8;display:flex;align-items:center;justify-content:center;overflow:hidden}.category-card-image img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}.category-card-pro:hover .category-card-image img{transform:scale(1.04)}.category-card-image i{font-size:48px;color:#b83e62}.category-card-body{padding:21px}.category-card-body>span,.offer-copy-pro>span{font-size:9px;letter-spacing:1.5px;font-weight:800;color:#8e858a}.category-card-body h3{font-size:22px;margin:7px 0}.category-card-body p{font-size:12px;color:#777;min-height:36px;margin-bottom:15px}.category-card-body b,.offer-copy-pro b{font-size:12px}.category-offer-card{background:#1b191b;color:#fff;display:flex;align-items:center;padding:38px}.offer-copy-pro{max-width:330px}.offer-copy-pro>span{color:#eaa0b3}.offer-copy-pro h3{font-size:39px;line-height:1.02;letter-spacing:-1.5px;margin:16px 0}.offer-copy-pro p{color:#b9b3b7;font-size:13px;line-height:1.7;margin-bottom:24px}.offer-copy-pro b{color:#fff}.home-products-pro{background:#fff}.product-grid-pro{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}.product-card-pro{min-width:0}.product-card-media{height:355px;background:#f7f5f5;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}.product-card-media img{width:100%;height:100%;object-fit:contain;transition:transform .4s ease}.product-card-pro:hover .product-card-media img{transform:scale(1.045)}.product-label{position:absolute;left:12px;top:12px;z-index:2;font-size:8px;font-weight:800;letter-spacing:1px;padding:7px 9px}.label-dark{background:#17151a;color:#fff}.label-sale{background:#b83e62;color:#fff}.product-quick{position:absolute;right:12px;top:12px;width:34px;height:34px;background:#fff;display:flex;align-items:center;justify-content:center;color:#17151a;opacity:0;transform:translateY(5px);transition:.2s}.product-card-pro:hover .product-quick{opacity:1;transform:none}.product-image-empty{display:flex;flex-direction:column;align-items:center;color:#aaa;gap:8px}.product-image-empty i{font-size:35px}.product-image-empty span{font-size:10px}.product-card-content{padding:14px 2px}.product-category{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#938c91;font-weight:700}.product-card-content h3{font-size:15px;margin:7px 0 10px;line-height:1.3}.product-card-content h3 a{color:#17151a}.product-price-pro{display:flex;align-items:center;gap:8px}.product-price-pro strong{font-size:15px}.product-price-pro del{font-size:11px;color:#999}.stock-note{display:inline-flex;align-items:center;gap:5px;margin-top:9px;color:#16845b;font-size:10px;font-weight:600}.stock-note.out{color:#a34b4b}.home-sale-banner{margin-top:90px;background:#1b191b;color:#fff}.sale-banner-inner{min-height:390px;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:50px;padding:60px 24px}.sale-banner-inner h2{font-size:48px;letter-spacing:-2px;line-height:1.02;max-width:550px;margin:14px 0}.sale-banner-inner p{color:#b8b2b6;max-width:490px;line-height:1.7;font-size:13px;margin-bottom:25px}.sale-product-stack{display:flex;justify-content:center;align-items:center;gap:12px}.sale-product-tile{width:150px;height:210px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}.sale-product-tile:nth-child(2){transform:translateY(-22px)}.sale-product-tile img{width:100%;height:100%;object-fit:contain}.sale-product-tile i{font-size:35px;color:#b83e62}.mini-product-grid-pro{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.mini-product-pro{color:#17151a}.mini-product-pro>div{height:260px;background:#f6f4f4;display:flex;align-items:center;justify-content:center;overflow:hidden}.mini-product-pro img{width:100%;height:100%;object-fit:contain;transition:transform .4s}.mini-product-pro:hover img{transform:scale(1.04)}.mini-product-pro>div i{font-size:35px;color:#aaa}.mini-product-pro>span{display:block;margin-top:14px;font-size:9px;color:#8d858b;text-transform:uppercase;letter-spacing:1.2px;font-weight:700}.mini-product-pro h3{font-size:15px;margin:6px 0}.mini-product-pro strong{font-size:14px}.home-confidence{margin-top:100px;background:#f7f3f2}.confidence-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;padding:80px 24px}.confidence-grid h2{font-size:43px;letter-spacing:-1.5px;line-height:1.05;margin:12px 0 18px;max-width:500px}.confidence-grid>div:first-child>p{max-width:500px;color:#777;line-height:1.75;font-size:14px}.confidence-list>div{display:flex;gap:18px;padding:18px 0;border-bottom:1px solid #e6dfe0}.confidence-list i{font-size:22px;color:#b83e62}.confidence-list strong{font-size:14px}.confidence-list p{font-size:11px;color:#777;margin:5px 0 0}
+@@media(max-width:992px){.home-hero-grid,.sale-banner-inner,.confidence-grid{grid-template-columns:1fr}.home-hero-grid{padding-top:50px}.home-hero-copy{margin:auto;text-align:center}.home-hero-copy>p{margin-left:auto;margin-right:auto}.home-hero-actions,.home-proof-row{justify-content:center}.home-hero-visual{min-height:500px}.service-grid{grid-template-columns:repeat(2,1fr);gap:18px}.service-grid>div:nth-child(2){border-right:0}.category-grid-pro{grid-template-columns:repeat(2,1fr)}.product-grid-pro{grid-template-columns:repeat(2,1fr)}.mini-product-grid-pro{grid-template-columns:repeat(2,1fr)}}
+@@media(max-width:576px){.home-hero-copy h1{font-size:49px;letter-spacing:-2.5px}.home-hero-grid{padding-left:18px;padding-right:18px}.hero-product-stage{width:280px;height:390px}.hero-blob-one{width:330px;height:330px}.hero-blob-two{width:230px;height:230px}.hero-floating-top{right:4px;top:35px}.hero-floating-bottom{left:0;bottom:35px}.home-section-pro{padding-top:65px}.home-section-head{align-items:flex-start;flex-direction:column}.home-section-head h2{font-size:28px}.service-grid{grid-template-columns:1fr;padding-left:18px;padding-right:18px}.service-grid>div{border-right:0;padding:10px 0}.category-grid-pro,.product-grid-pro,.mini-product-grid-pro{grid-template-columns:1fr}.category-card-pro{min-height:350px}.category-card-image{height:220px}.product-card-media{height:330px}.sale-banner-inner{padding:50px 20px}.sale-banner-inner h2{font-size:38px}.sale-product-tile{width:105px;height:145px}.confidence-grid{padding:60px 20px;gap:40px}.confidence-grid h2{font-size:35px}}
+</style>
+}

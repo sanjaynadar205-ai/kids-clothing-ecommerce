@@ -1,0 +1,34 @@
+@model KidsWearStore.Controllers.RegisterViewModel
+@{
+    ViewData["Title"] = "Create account";
+}
+
+<div class="auth-shell">
+    <div class="auth-card">
+        <div class="auth-brand"><span class="auth-mark"><i class="bi bi-bag"></i></span><span>KidsWearStore</span></div>
+        <div class="auth-heading">
+            <span class="section-kicker">WELCOME TO THE STORE</span>
+            <h1>Create your account</h1>
+            <p>Join KidsWearStore to save favourites, checkout faster and track every order.</p>
+        </div>
+
+        <form asp-action="Register" method="post" class="auth-form">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
+            <div class="row g-3">
+                <div class="col-md-6"><label asp-for="FirstName"></label><input asp-for="FirstName" class="form-control" autocomplete="given-name" placeholder="First name" /><span asp-validation-for="FirstName" class="text-danger small"></span></div>
+                <div class="col-md-6"><label asp-for="LastName"></label><input asp-for="LastName" class="form-control" autocomplete="family-name" placeholder="Last name" /><span asp-validation-for="LastName" class="text-danger small"></span></div>
+                <div class="col-12"><label asp-for="Email"></label><input asp-for="Email" class="form-control" autocomplete="email" placeholder="you@example.com" /><span asp-validation-for="Email" class="text-danger small"></span></div>
+                <div class="col-12"><label asp-for="PhoneNumber"></label><input asp-for="PhoneNumber" class="form-control" autocomplete="tel" placeholder="Optional phone number" /><span asp-validation-for="PhoneNumber" class="text-danger small"></span></div>
+                <div class="col-md-6"><label asp-for="Password"></label><input asp-for="Password" class="form-control" autocomplete="new-password" placeholder="At least 6 characters" /><span asp-validation-for="Password" class="text-danger small"></span></div>
+                <div class="col-md-6"><label asp-for="ConfirmPassword"></label><input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" placeholder="Repeat password" /><span asp-validation-for="ConfirmPassword" class="text-danger small"></span></div>
+            </div>
+            <div class="auth-security"><i class="bi bi-shield-check"></i><div><strong>Email verification required</strong><span>We will send a one-time 6-digit verification code before your account is activated.</span></div></div>
+            <button type="submit" class="btn btn-dark w-100 auth-submit">Continue to verification <i class="bi bi-arrow-right ms-2"></i></button>
+        </form>
+
+        <p class="auth-switch">Already have an account? <a asp-action="Login">Sign in</a></p>
+    </div>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }
