@@ -6,16 +6,76 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // ----------------------------------------------------
-// DATABASE
+// DATABASE CONFIGURATION
+// ----------------------------------------------------
+
+var connectionString =
+    builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    Console.Error.WriteLine(
+        "CRITICAL: DefaultConnection is missing from configuration.");
+}
+else
+{
+    Console.WriteLine("DefaultConnection detected.");
+}
+
+// ----------------------------------------------------
+// DATABASE PROVIDER SELECTION
+//
+// Local development:
+//   SQL Server LocalDB
+//
+// Production:
+//   Neon PostgreSQL
 // ----------------------------------------------------
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqlOptions =>
-        {
-            sqlOptions.EnableRetryOnFailure();
-        }));
+{
+    if (connectionString != null &&
+        connectionString.Contains(
+            "Host=",
+            StringComparison.OrdinalIgnoreCase))
+    {
+        // ------------------------------------------------
+        // POSTGRESQL / NEON
+        // ------------------------------------------------
+
+        Console.WriteLine(
+            "Database provider selected: PostgreSQL / Neon.");
+
+        options.UseNpgsql(
+            connectionString,
+            npgsqlOptions =>
+            {
+                npgsqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorCodesToAdd: null);
+            });
+    }
+    else
+    {
+        // ------------------------------------------------
+        // SQL SERVER / LOCALDB
+        // ------------------------------------------------
+
+        Console.WriteLine(
+            "Database provider selected: SQL Server / LocalDB.");
+
+        options.UseSqlServer(
+            connectionString,
+            sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null);
+            });
+    }
+});
 
 // ----------------------------------------------------
 // IDENTITY
@@ -32,9 +92,9 @@ builder.Services
 
         options.User.RequireUniqueEmail = true;
 
-        // Production-friendly cookie settings
         options.Lockout.MaxFailedAccessAttempts = 5;
-        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
+        options.Lockout.DefaultLockoutTimeSpan =
+            TimeSpan.FromMinutes(10);
         options.Lockout.AllowedForNewUsers = true;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -53,10 +113,11 @@ builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(20);
+
     options.Cookie.HttpOnly = true;
+
     options.Cookie.IsEssential = true;
 
-    // Session cookie should only travel over HTTPS in production.
     options.Cookie.SecurePolicy =
         CookieSecurePolicy.SameAsRequest;
 });
@@ -73,15 +134,12 @@ var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
-    // Never expose detailed exceptions in production.
     app.UseExceptionHandler("/Home/Error");
 
-    // Tell browsers to use HTTPS.
     app.UseHsts();
 }
 else
 {
-    // Development environment keeps detailed errors available.
     app.UseDeveloperExceptionPage();
 }
 
@@ -111,182 +169,256 @@ app.MapControllerRoute(
 
 // ----------------------------------------------------
 // DATABASE INITIALIZATION
-// ROLES + CATEGORIES + ADMIN USER
 // ----------------------------------------------------
 
-using (var scope = app.Services.CreateScope())
+try
 {
-    var services = scope.ServiceProvider;
-
-    // ------------------------------------------------
-    // DATABASE
-    // ------------------------------------------------
-
-    var db =
-        services.GetRequiredService<ApplicationDbContext>();
-
-    // ------------------------------------------------
-    // CREATE DEFAULT PRODUCT CATEGORIES
-    // ------------------------------------------------
-
-    if (!await db.Categories.AnyAsync())
+    if (string.IsNullOrWhiteSpace(connectionString))
     {
-        db.Categories.AddRange(
-            new Category
-            {
-                Name = "Boys",
-                Description = "Clothing and fashion for boys",
-                IsActive = true
-            },
-
-            new Category
-            {
-                Name = "Girls",
-                Description = "Clothing and fashion for girls",
-                IsActive = true
-            },
-
-            new Category
-            {
-                Name = "Baby",
-                Description = "Cute clothing for babies",
-                IsActive = true
-            },
-
-            new Category
-            {
-                Name = "T-Shirts",
-                Description = "Kids T-Shirts",
-                IsActive = true
-            },
-
-            new Category
-            {
-                Name = "Dresses",
-                Description = "Dresses and frocks for kids",
-                IsActive = true
-            },
-
-            new Category
-            {
-                Name = "Bottom Wear",
-                Description =
-                    "Jeans, shorts, trousers and other bottom wear",
-                IsActive = true
-            }
-        );
-
-        await db.SaveChangesAsync();
+        Console.Error.WriteLine(
+            "DATABASE INITIALIZATION SKIPPED: DefaultConnection is not configured.");
     }
-
-    // ------------------------------------------------
-    // ROLES
-    // ------------------------------------------------
-
-    var roleManager =
-        services.GetRequiredService<RoleManager<IdentityRole>>();
-
-    var userManager =
-        services.GetRequiredService<UserManager<ApplicationUser>>();
-
-    string[] roles =
+    else
     {
-        "Admin",
-        "ProductManager",
-        "Customer"
-    };
+        using var scope = app.Services.CreateScope();
 
-    foreach (var role in roles)
-    {
-        if (!await roleManager.RoleExistsAsync(role))
+        var services = scope.ServiceProvider;
+
+        var db =
+            services.GetRequiredService<ApplicationDbContext>();
+
+        Console.WriteLine(
+            "Testing configured database connection...");
+
+        // ------------------------------------------------
+        // TEST DATABASE CONNECTION
+        // ------------------------------------------------
+
+        var canConnect =
+            await db.Database.CanConnectAsync();
+
+        if (!canConnect)
         {
-            var roleResult =
-                await roleManager.CreateAsync(
-                    new IdentityRole(role));
-
-            if (!roleResult.Succeeded)
-            {
-                foreach (var error in roleResult.Errors)
-                {
-                    Console.WriteLine(
-                        $"Role creation error: {error.Description}");
-                }
-            }
+            Console.Error.WriteLine(
+                "DATABASE ERROR: Cannot connect to the configured database.");
         }
-    }
-
-    // ------------------------------------------------
-    // ADMIN USER
-    // ------------------------------------------------
-
-    var adminEmail =
-        Environment.GetEnvironmentVariable(
-            "KIDSWEAR_ADMIN_EMAIL");
-
-    var adminPassword =
-        Environment.GetEnvironmentVariable(
-            "KIDSWEAR_ADMIN_PASSWORD");
-
-    if (!string.IsNullOrWhiteSpace(adminEmail) &&
-        !string.IsNullOrWhiteSpace(adminPassword))
-    {
-        var adminUser =
-            await userManager.FindByEmailAsync(adminEmail);
-
-        // --------------------------------------------
-        // CREATE ADMIN IF IT DOES NOT EXIST
-        // --------------------------------------------
-
-        if (adminUser == null)
+        else
         {
-            adminUser = new ApplicationUser
+            Console.WriteLine(
+                "DATABASE CONNECTION SUCCESSFUL.");
+
+            // ------------------------------------------------
+            // DEFAULT CATEGORIES
+            // ------------------------------------------------
+
+            if (!await db.Categories.AnyAsync())
             {
-                UserName = adminEmail,
-                Email = adminEmail,
-                EmailConfirmed = true,
-                FirstName = "Store",
-                LastName = "Admin"
+                db.Categories.AddRange(
+                    new Category
+                    {
+                        Name = "Boys",
+                        Description =
+                            "Clothing and fashion for boys",
+                        IsActive = true
+                    },
+
+                    new Category
+                    {
+                        Name = "Girls",
+                        Description =
+                            "Clothing and fashion for girls",
+                        IsActive = true
+                    },
+
+                    new Category
+                    {
+                        Name = "Baby",
+                        Description =
+                            "Cute clothing for babies",
+                        IsActive = true
+                    },
+
+                    new Category
+                    {
+                        Name = "T-Shirts",
+                        Description =
+                            "Kids T-Shirts",
+                        IsActive = true
+                    },
+
+                    new Category
+                    {
+                        Name = "Dresses",
+                        Description =
+                            "Dresses and frocks for kids",
+                        IsActive = true
+                    },
+
+                    new Category
+                    {
+                        Name = "Bottom Wear",
+                        Description =
+                            "Jeans, shorts, trousers and other bottom wear",
+                        IsActive = true
+                    }
+                );
+
+                await db.SaveChangesAsync();
+
+                Console.WriteLine(
+                    "DEFAULT CATEGORIES CREATED.");
+            }
+
+            // ------------------------------------------------
+            // ROLES
+            // ------------------------------------------------
+
+            var roleManager =
+                services.GetRequiredService<
+                    RoleManager<IdentityRole>>();
+
+            var userManager =
+                services.GetRequiredService<
+                    UserManager<ApplicationUser>>();
+
+            string[] roles =
+            {
+                "Admin",
+                "ProductManager",
+                "Customer"
             };
 
-            var createResult =
-                await userManager.CreateAsync(
-                    adminUser,
-                    adminPassword);
-
-            if (!createResult.Succeeded)
+            foreach (var role in roles)
             {
-                foreach (var error in createResult.Errors)
+                if (!await roleManager.RoleExistsAsync(role))
                 {
-                    Console.WriteLine(
-                        $"Admin creation error: {error.Description}");
+                    var roleResult =
+                        await roleManager.CreateAsync(
+                            new IdentityRole(role));
+
+                    if (!roleResult.Succeeded)
+                    {
+                        foreach (var error in roleResult.Errors)
+                        {
+                            Console.Error.WriteLine(
+                                $"Role creation error: {error.Description}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine(
+                            $"Role created: {role}");
+                    }
                 }
             }
-        }
 
-        // --------------------------------------------
-        // MAKE SURE ADMIN HAS ADMIN ROLE
-        // --------------------------------------------
+            // ------------------------------------------------
+            // PRODUCTION ADMIN
+            // ------------------------------------------------
 
-        if (adminUser != null &&
-            !await userManager.IsInRoleAsync(
-                adminUser,
-                "Admin"))
-        {
-            var roleResult =
-                await userManager.AddToRoleAsync(
-                    adminUser,
-                    "Admin");
+            var adminEmail =
+                Environment.GetEnvironmentVariable(
+                    "KIDSWEAR_ADMIN_EMAIL");
 
-            if (!roleResult.Succeeded)
+            var adminPassword =
+                Environment.GetEnvironmentVariable(
+                    "KIDSWEAR_ADMIN_PASSWORD");
+
+            if (!string.IsNullOrWhiteSpace(adminEmail) &&
+                !string.IsNullOrWhiteSpace(adminPassword))
             {
-                foreach (var error in roleResult.Errors)
+                var adminUser =
+                    await userManager.FindByEmailAsync(
+                        adminEmail);
+
+                if (adminUser == null)
                 {
-                    Console.WriteLine(
-                        $"Admin role error: {error.Description}");
+                    adminUser = new ApplicationUser
+                    {
+                        UserName = adminEmail,
+                        Email = adminEmail,
+                        EmailConfirmed = true,
+                        FirstName = "Store",
+                        LastName = "Admin"
+                    };
+
+                    var createResult =
+                        await userManager.CreateAsync(
+                            adminUser,
+                            adminPassword);
+
+                    if (!createResult.Succeeded)
+                    {
+                        foreach (var error in createResult.Errors)
+                        {
+                            Console.Error.WriteLine(
+                                $"Admin creation error: {error.Description}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine(
+                            "Production admin user created.");
+                    }
                 }
+
+                if (adminUser != null &&
+                    !await userManager.IsInRoleAsync(
+                        adminUser,
+                        "Admin"))
+                {
+                    var roleResult =
+                        await userManager.AddToRoleAsync(
+                            adminUser,
+                            "Admin");
+
+                    if (!roleResult.Succeeded)
+                    {
+                        foreach (var error in roleResult.Errors)
+                        {
+                            Console.Error.WriteLine(
+                                $"Admin role error: {error.Description}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine(
+                            "Production admin role assigned.");
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine(
+                    "Production admin environment variables are not configured.");
             }
         }
     }
 }
+catch (Exception ex)
+{
+    // ----------------------------------------------------
+    // DO NOT CRASH THE PROCESS DURING DATABASE DIAGNOSIS
+    // ----------------------------------------------------
+
+    Console.Error.WriteLine(
+        "==================================================");
+
+    Console.Error.WriteLine(
+        "DATABASE STARTUP ERROR");
+
+    Console.Error.WriteLine(
+        "==================================================");
+
+    Console.Error.WriteLine(
+        ex.ToString());
+
+    Console.Error.WriteLine(
+        "==================================================");
+}
+
+// ----------------------------------------------------
+// START APPLICATION
+// ----------------------------------------------------
 
 app.Run();

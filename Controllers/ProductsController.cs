@@ -1,3 +1,5 @@
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using KidsWearStore.Data;
 using KidsWearStore.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -10,14 +12,40 @@ namespace KidsWearStore.Controllers;
 public class ProductsController : Controller
 {
     private readonly ApplicationDbContext _context;
-    private readonly IWebHostEnvironment _environment;
+    private readonly Cloudinary _cloudinary;
 
     public ProductsController(
         ApplicationDbContext context,
-        IWebHostEnvironment environment)
+        IConfiguration configuration)
     {
         _context = context;
-        _environment = environment;
+
+        var cloudName =
+            configuration["Cloudinary:CloudName"];
+
+        var apiKey =
+            configuration["Cloudinary:ApiKey"];
+
+        var apiSecret =
+            configuration["Cloudinary:ApiSecret"];
+
+        if (string.IsNullOrWhiteSpace(cloudName) ||
+            string.IsNullOrWhiteSpace(apiKey) ||
+            string.IsNullOrWhiteSpace(apiSecret))
+        {
+            throw new InvalidOperationException(
+                "Cloudinary configuration is missing. " +
+                "Configure Cloudinary:CloudName, Cloudinary:ApiKey and Cloudinary:ApiSecret.");
+        }
+
+        var account =
+            new Account(
+                cloudName,
+                apiKey,
+                apiSecret);
+
+        _cloudinary =
+            new Cloudinary(account);
     }
 
     // =========================================================
@@ -37,7 +65,6 @@ public class ProductsController : Controller
             .Where(p => p.IsActive)
             .AsQueryable();
 
-        // SEARCH
         if (!string.IsNullOrWhiteSpace(search))
         {
             search = search.Trim();
@@ -52,47 +79,42 @@ public class ProductsController : Controller
                  p.Category.Name.Contains(search)));
         }
 
-        // CATEGORY
         if (categoryId.HasValue)
         {
             query = query.Where(
                 p => p.CategoryId == categoryId.Value);
         }
 
-        // MINIMUM PRICE
         if (minPrice.HasValue)
         {
             query = query.Where(p =>
                 (p.DiscountPrice ?? p.Price) >= minPrice.Value);
         }
 
-        // MAXIMUM PRICE
         if (maxPrice.HasValue)
         {
             query = query.Where(p =>
                 (p.DiscountPrice ?? p.Price) <= maxPrice.Value);
         }
 
-        // AVAILABILITY
         if (!string.IsNullOrWhiteSpace(availability))
         {
             if (availability.Equals(
                     "in-stock",
                     StringComparison.OrdinalIgnoreCase))
             {
-                query = query.Where(p =>
-                    p.StockQuantity > 0);
+                query = query.Where(
+                    p => p.StockQuantity > 0);
             }
             else if (availability.Equals(
                          "out-of-stock",
                          StringComparison.OrdinalIgnoreCase))
             {
-                query = query.Where(p =>
-                    p.StockQuantity <= 0);
+                query = query.Where(
+                    p => p.StockQuantity <= 0);
             }
         }
 
-        // SORTING
         query = sort?.ToLowerInvariant() switch
         {
             "price-low" =>
@@ -136,9 +158,9 @@ public class ProductsController : Controller
                     .ThenByDescending(p => p.CreatedAt)
         };
 
-        var products = await query.ToListAsync();
+        var products =
+            await query.ToListAsync();
 
-        // Preserve filter values
         ViewBag.Search = search;
         ViewBag.CategoryId = categoryId;
         ViewBag.MinPrice = minPrice;
@@ -146,29 +168,30 @@ public class ProductsController : Controller
         ViewBag.Sort = sort;
         ViewBag.Availability = availability;
 
-        // Categories
-        ViewBag.Categories = await _context.Categories
-            .Where(c => c.IsActive)
-            .OrderBy(c => c.Name)
-            .ToListAsync();
+        ViewBag.Categories =
+            await _context.Categories
+                .Where(c => c.IsActive)
+                .OrderBy(c => c.Name)
+                .ToListAsync();
 
-        // Shop statistics
-        ViewBag.TotalProducts = await _context.Products
-            .CountAsync(p => p.IsActive);
+        ViewBag.TotalProducts =
+            await _context.Products
+                .CountAsync(p => p.IsActive);
 
-        ViewBag.InStockProducts = await _context.Products
-            .CountAsync(p =>
-                p.IsActive &&
-                p.StockQuantity > 0);
+        ViewBag.InStockProducts =
+            await _context.Products
+                .CountAsync(p =>
+                    p.IsActive &&
+                    p.StockQuantity > 0);
 
-        ViewBag.FeaturedProducts = await _context.Products
-            .CountAsync(p =>
-                p.IsActive &&
-                p.IsFeatured);
+        ViewBag.FeaturedProducts =
+            await _context.Products
+                .CountAsync(p =>
+                    p.IsActive &&
+                    p.IsFeatured);
 
         return View(products);
     }
-
 
     // =========================================================
     // PRODUCT DETAILS
@@ -181,12 +204,13 @@ public class ProductsController : Controller
             return NotFound();
         }
 
-        var product = await _context.Products
-            .Include(p => p.Category)
-            .Include(p => p.ProductImages)
-            .FirstOrDefaultAsync(
-                p => p.Id == id &&
-                     p.IsActive);
+        var product =
+            await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .FirstOrDefaultAsync(
+                    p => p.Id == id &&
+                         p.IsActive);
 
         if (product == null)
         {
@@ -196,7 +220,6 @@ public class ProductsController : Controller
         return View(product);
     }
 
-
     // =========================================================
     // MANAGE PRODUCTS
     // =========================================================
@@ -204,14 +227,14 @@ public class ProductsController : Controller
     [Authorize(Roles = "ProductManager,Admin")]
     public async Task<IActionResult> Manage()
     {
-        var products = await _context.Products
-            .Include(p => p.Category)
-            .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync();
+        var products =
+            await _context.Products
+                .Include(p => p.Category)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
 
         return View(products);
     }
-
 
     // =========================================================
     // CREATE PRODUCT - GET
@@ -225,7 +248,6 @@ public class ProductsController : Controller
         return View();
     }
 
-
     // =========================================================
     // CREATE PRODUCT - POST
     // =========================================================
@@ -237,11 +259,11 @@ public class ProductsController : Controller
         Product product,
         IFormFile? imageFile)
     {
-        // Validate category
-        var categoryExists = await _context.Categories
-            .AnyAsync(c =>
-                c.Id == product.CategoryId &&
-                c.IsActive);
+        var categoryExists =
+            await _context.Categories
+                .AnyAsync(c =>
+                    c.Id == product.CategoryId &&
+                    c.IsActive);
 
         if (!categoryExists)
         {
@@ -250,7 +272,6 @@ public class ProductsController : Controller
                 "Please select a valid category.");
         }
 
-        // Validate image
         if (imageFile != null &&
             imageFile.Length > 0)
         {
@@ -261,7 +282,8 @@ public class ProductsController : Controller
                     "Only JPG, JPEG, PNG and WEBP images are allowed.");
             }
 
-            if (imageFile.Length > 5 * 1024 * 1024)
+            if (imageFile.Length >
+                5 * 1024 * 1024)
             {
                 ModelState.AddModelError(
                     "imageFile",
@@ -272,18 +294,20 @@ public class ProductsController : Controller
         if (!ModelState.IsValid)
         {
             await LoadCategories();
+
             return View(product);
         }
 
-        // Upload image
         if (imageFile != null &&
             imageFile.Length > 0)
         {
             product.MainImageUrl =
-                await SaveImage(imageFile);
+                await UploadImage(imageFile);
         }
 
-        product.CreatedAt = DateTime.UtcNow;
+        product.CreatedAt =
+            DateTime.UtcNow;
+
         product.UpdatedAt = null;
 
         _context.Products.Add(product);
@@ -295,7 +319,6 @@ public class ProductsController : Controller
 
         return RedirectToAction(nameof(Manage));
     }
-
 
     // =========================================================
     // EDIT PRODUCT - GET
@@ -309,9 +332,10 @@ public class ProductsController : Controller
             return NotFound();
         }
 
-        var product = await _context.Products
-            .FirstOrDefaultAsync(
-                p => p.Id == id);
+        var product =
+            await _context.Products
+                .FirstOrDefaultAsync(
+                    p => p.Id == id);
 
         if (product == null)
         {
@@ -322,7 +346,6 @@ public class ProductsController : Controller
 
         return View(product);
     }
-
 
     // =========================================================
     // EDIT PRODUCT - POST
@@ -341,11 +364,11 @@ public class ProductsController : Controller
             return NotFound();
         }
 
-        // Validate category
-        var categoryExists = await _context.Categories
-            .AnyAsync(c =>
-                c.Id == product.CategoryId &&
-                c.IsActive);
+        var categoryExists =
+            await _context.Categories
+                .AnyAsync(c =>
+                    c.Id == product.CategoryId &&
+                    c.IsActive);
 
         if (!categoryExists)
         {
@@ -354,7 +377,6 @@ public class ProductsController : Controller
                 "Please select a valid category.");
         }
 
-        // Validate new image
         if (imageFile != null &&
             imageFile.Length > 0)
         {
@@ -365,7 +387,8 @@ public class ProductsController : Controller
                     "Only JPG, JPEG, PNG and WEBP images are allowed.");
             }
 
-            if (imageFile.Length > 5 * 1024 * 1024)
+            if (imageFile.Length >
+                5 * 1024 * 1024)
             {
                 ModelState.AddModelError(
                     "imageFile",
@@ -376,6 +399,7 @@ public class ProductsController : Controller
         if (!ModelState.IsValid)
         {
             await LoadCategories();
+
             return View(product);
         }
 
@@ -389,11 +413,9 @@ public class ProductsController : Controller
             return NotFound();
         }
 
-        // Save old image path
         var oldImage =
             existingProduct.MainImageUrl;
 
-        // Update product fields
         existingProduct.Name =
             product.Name;
 
@@ -436,14 +458,13 @@ public class ProductsController : Controller
         existingProduct.CategoryId =
             product.CategoryId;
 
-        // Replace image only when new image selected
         if (imageFile != null &&
             imageFile.Length > 0)
         {
             existingProduct.MainImageUrl =
-                await SaveImage(imageFile);
+                await UploadImage(imageFile);
 
-            DeleteImage(oldImage);
+            await DeleteCloudinaryImage(oldImage);
         }
 
         existingProduct.UpdatedAt =
@@ -456,7 +477,6 @@ public class ProductsController : Controller
 
         return RedirectToAction(nameof(Manage));
     }
-
 
     // =========================================================
     // DEACTIVATE PRODUCT
@@ -478,7 +498,8 @@ public class ProductsController : Controller
         }
 
         product.IsActive = false;
-        product.UpdatedAt = DateTime.UtcNow;
+        product.UpdatedAt =
+            DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -487,7 +508,6 @@ public class ProductsController : Controller
 
         return RedirectToAction(nameof(Manage));
     }
-
 
     // =========================================================
     // ACTIVATE PRODUCT
@@ -509,7 +529,8 @@ public class ProductsController : Controller
         }
 
         product.IsActive = true;
-        product.UpdatedAt = DateTime.UtcNow;
+        product.UpdatedAt =
+            DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -518,7 +539,6 @@ public class ProductsController : Controller
 
         return RedirectToAction(nameof(Manage));
     }
-
 
     // =========================================================
     // PERMANENT DELETE PRODUCT
@@ -529,20 +549,21 @@ public class ProductsController : Controller
     [Authorize(Roles = "ProductManager,Admin")]
     public async Task<IActionResult> Delete(int id)
     {
-        var product = await _context.Products
-            .Include(p => p.ProductImages)
-            .FirstOrDefaultAsync(p => p.Id == id);
+        var product =
+            await _context.Products
+                .Include(p => p.ProductImages)
+                .FirstOrDefaultAsync(
+                    p => p.Id == id);
 
         if (product == null)
         {
             return NotFound();
         }
 
-        // Do not permanently delete a product that is part
-        // of an existing order. Historical orders must remain
-        // intact.
-        var hasOrderItems = await _context.OrderItems
-            .AnyAsync(oi => oi.ProductId == id);
+        var hasOrderItems =
+            await _context.OrderItems
+                .AnyAsync(
+                    oi => oi.ProductId == id);
 
         if (hasOrderItems)
         {
@@ -552,37 +573,40 @@ public class ProductsController : Controller
             return RedirectToAction(nameof(Manage));
         }
 
-        // Remove cart references first because Product -> CartItem
-        // uses a restricted relationship.
-        var cartItems = await _context.CartItems
-            .Where(ci => ci.ProductId == id)
-            .ToListAsync();
+        var cartItems =
+            await _context.CartItems
+                .Where(ci =>
+                    ci.ProductId == id)
+                .ToListAsync();
 
         if (cartItems.Count > 0)
         {
-            _context.CartItems.RemoveRange(cartItems);
+            _context.CartItems.RemoveRange(
+                cartItems);
         }
 
-        // Remove wishlist references.
-        var wishlists = await _context.Wishlists
-            .Where(w => w.ProductId == id)
-            .ToListAsync();
+        var wishlists =
+            await _context.Wishlists
+                .Where(w =>
+                    w.ProductId == id)
+                .ToListAsync();
 
         if (wishlists.Count > 0)
         {
-            _context.Wishlists.RemoveRange(wishlists);
+            _context.Wishlists.RemoveRange(
+                wishlists);
         }
 
-        // Delete the main uploaded image.
-        DeleteImage(product.MainImageUrl);
+        await DeleteCloudinaryImage(
+            product.MainImageUrl);
 
-        // Delete additional uploaded images.
-        foreach (var productImage in product.ProductImages)
+        foreach (var productImage
+                 in product.ProductImages)
         {
-            DeleteImage(productImage.ImageUrl);
+            await DeleteCloudinaryImage(
+                productImage.ImageUrl);
         }
 
-        // ProductImages are cascade deleted by the database.
         _context.Products.Remove(product);
 
         await _context.SaveChangesAsync();
@@ -592,7 +616,6 @@ public class ProductsController : Controller
 
         return RedirectToAction(nameof(Manage));
     }
-
 
     // =========================================================
     // LOAD CATEGORIES
@@ -613,7 +636,6 @@ public class ProductsController : Controller
                 "Name");
     }
 
-
     // =========================================================
     // IMAGE VALIDATION
     // =========================================================
@@ -630,64 +652,73 @@ public class ProductsController : Controller
             };
 
         var extension =
-            Path.GetExtension(file.FileName)
+            Path.GetExtension(
+                file.FileName)
                 .ToLowerInvariant();
 
-        return allowedExtensions.Contains(extension);
+        return allowedExtensions.Contains(
+            extension);
     }
 
-
     // =========================================================
-    // SAVE IMAGE
+    // CLOUDINARY UPLOAD
     // =========================================================
 
-    private async Task<string> SaveImage(
+    private async Task<string> UploadImage(
         IFormFile imageFile)
     {
-        var uploadsFolder =
-            Path.Combine(
-                _environment.WebRootPath,
-                "uploads",
-                "products");
-
-        if (!Directory.Exists(uploadsFolder))
-        {
-            Directory.CreateDirectory(
-                uploadsFolder);
-        }
+        await using var stream =
+            imageFile.OpenReadStream();
 
         var extension =
             Path.GetExtension(
                 imageFile.FileName)
                 .ToLowerInvariant();
 
-        var fileName =
-            $"{Guid.NewGuid():N}{extension}";
+        var publicId =
+            $"criskidswear/products/{Guid.NewGuid():N}";
 
-        var filePath =
-            Path.Combine(
-                uploadsFolder,
-                fileName);
+        var uploadParams =
+            new ImageUploadParams
+            {
+                File =
+                    new FileDescription(
+                        imageFile.FileName,
+                        stream),
 
-        using (var stream =
-               new FileStream(
-                   filePath,
-                   FileMode.Create))
+                PublicId = publicId,
+
+                Folder =
+                    "criskidswear/products",
+
+                Overwrite = false
+            };
+
+        var result =
+            await _cloudinary.UploadAsync(
+                uploadParams);
+
+        if (result.Error != null)
         {
-            await imageFile.CopyToAsync(
-                stream);
+            throw new InvalidOperationException(
+                $"Cloudinary upload failed: {result.Error.Message}");
         }
 
-        return
-            $"/uploads/products/{fileName}";
+        if (string.IsNullOrWhiteSpace(
+                result.SecureUrl?.ToString()))
+        {
+            throw new InvalidOperationException(
+                "Cloudinary upload completed but no image URL was returned.");
+        }
+
+        return result.SecureUrl.ToString();
     }
 
-
     // =========================================================
-    // DELETE IMAGE FILE
+    // CLOUDINARY DELETE
     // =========================================================
 
-    private void DeleteImage(
+    private async Task DeleteCloudinaryImage(
         string? imageUrl)
     {
         if (string.IsNullOrWhiteSpace(imageUrl))
@@ -695,39 +726,128 @@ public class ProductsController : Controller
             return;
         }
 
-        if (!imageUrl.StartsWith(
-                "/uploads/products/",
+        if (!imageUrl.Contains(
+                "res.cloudinary.com",
                 StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
 
-        var fileName =
-            Path.GetFileName(imageUrl);
-
-        if (string.IsNullOrWhiteSpace(fileName))
+        try
         {
-            return;
+            var publicId =
+                ExtractCloudinaryPublicId(
+                    imageUrl);
+
+            if (string.IsNullOrWhiteSpace(
+                    publicId))
+            {
+                return;
+            }
+
+            var deleteParams =
+                new DeletionParams(
+                    publicId)
+                {
+                    ResourceType =
+                        ResourceType.Image
+                };
+
+            await _cloudinary.DestroyAsync(
+                deleteParams);
         }
-
-        var filePath =
-            Path.Combine(
-                _environment.WebRootPath,
-                "uploads",
-                "products",
-                fileName);
-
-        if (System.IO.File.Exists(filePath))
+        catch
         {
-            try
+            // Image deletion should not prevent
+            // the database operation from completing.
+        }
+    }
+
+    // =========================================================
+    // EXTRACT CLOUDINARY PUBLIC ID
+    // =========================================================
+
+    private string? ExtractCloudinaryPublicId(
+        string imageUrl)
+    {
+        try
+        {
+            var uri =
+                new Uri(imageUrl);
+
+            var path =
+                uri.AbsolutePath;
+
+            const string uploadMarker =
+                "/image/upload/";
+
+            var uploadIndex =
+                path.IndexOf(
+                    uploadMarker,
+                    StringComparison.OrdinalIgnoreCase);
+
+            if (uploadIndex < 0)
             {
-                System.IO.File.Delete(filePath);
+                return null;
             }
-            catch
+
+            var publicPart =
+                path.Substring(
+                    uploadIndex +
+                    uploadMarker.Length);
+
+            var segments =
+                publicPart.Split(
+                    '/',
+                    StringSplitOptions.RemoveEmptyEntries);
+
+            if (segments.Length == 0)
             {
-                // Do not prevent database operations if
-                // an old image file cannot be removed.
+                return null;
             }
+
+            var startIndex = 0;
+
+            // Remove Cloudinary version segment.
+            if (segments[0].StartsWith(
+                    "v",
+                    StringComparison.OrdinalIgnoreCase) &&
+                segments[0].Length > 1 &&
+                long.TryParse(
+                    segments[0].Substring(1),
+                    out _))
+            {
+                startIndex = 1;
+            }
+
+            if (startIndex >= segments.Length)
+            {
+                return null;
+            }
+
+            var publicId =
+                string.Join(
+                    "/",
+                    segments.Skip(startIndex));
+
+            var extension =
+                Path.GetExtension(publicId);
+
+            if (!string.IsNullOrWhiteSpace(
+                    extension))
+            {
+                publicId =
+                    publicId.Substring(
+                        0,
+                        publicId.Length -
+                        extension.Length);
+            }
+
+            return publicId;
+        }
+        catch
+        {
+            return null;
         }
     }
 }

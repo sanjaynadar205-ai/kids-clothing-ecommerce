@@ -2,13 +2,14 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 WORKDIR /src
 
-COPY KidsWearStore.csproj .
-RUN dotnet restore KidsWearStore.csproj
-
 COPY . .
+
+RUN dotnet restore KidsWearStore.csproj
 
 RUN dotnet publish KidsWearStore.csproj \
     -c Release \
+    -r linux-x64 \
+    --self-contained false \
     -o /app/publish \
     --no-restore
 

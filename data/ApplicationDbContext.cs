@@ -7,7 +7,7 @@ namespace KidsWearStore.Data;
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
     public ApplicationDbContext(
-        DbContextOptions<ApplicationDbContext> options)
+        DbContextOptions options)
         : base(options)
     {
     }
@@ -20,8 +20,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
-
-    // Wishlist
     public DbSet<Wishlist> Wishlists => Set<Wishlist>();
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -76,7 +74,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(oi => oi.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Wishlist relationships
         builder.Entity<Wishlist>()
             .HasOne(w => w.User)
             .WithMany(u => u.Wishlists)
@@ -89,8 +86,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(w => w.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Prevent the same user from adding the same product
-        // to the wishlist more than once.
         builder.Entity<Wishlist>()
             .HasIndex(w => new { w.UserId, w.ProductId })
             .IsUnique();
