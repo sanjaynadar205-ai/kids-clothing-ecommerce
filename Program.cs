@@ -55,15 +55,42 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         Console.WriteLine(
             "Database provider selected: PostgreSQL / Neon.");
 
-        options.UseNpgsql(
-            connectionString,
-            npgsqlOptions =>
-            {
-                npgsqlOptions.EnableRetryOnFailure(
-                    maxRetryCount: 5,
-                    maxRetryDelay: TimeSpan.FromSeconds(10),
-                    errorCodesToAdd: null);
-            });
+        var postgresConnectionString = connectionString;
+
+if (connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) ||
+    connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+{
+    var uri = new Uri(connectionString);
+
+    var userInfo = uri.UserInfo.Split(':', 2);
+
+    var builder = new Npgsql.NpgsqlConnectionStringBuilder
+    {
+        Host = uri.Host,
+        Port = uri.Port > 0 ? uri.Port : 5432,
+        Database = uri.AbsolutePath.Trim('/'),
+        Username = Uri.UnescapeDataString(userInfo[0]),
+        Password = userInfo.Length > 1
+            ? Uri.UnescapeDataString(userInfo[1])
+            : ""
+    };
+
+    builder.SslMode = Npgsql.SslMode.Require;
+
+    postgresConnectionString = builder.ConnectionString;
+}
+
+Console.WriteLine("Database provider selected: PostgreSQL / Neon.");
+
+options.UseNpgsql(
+    postgresConnectionString,
+    npgsqlOptions =>
+    {
+        npgsqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorCodesToAdd: null);
+    });
     }
     else
     {
