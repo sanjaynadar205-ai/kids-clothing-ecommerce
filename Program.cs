@@ -35,9 +35,18 @@ else
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     if (connectionString != null &&
-        connectionString.Contains(
-            "Host=",
-            StringComparison.OrdinalIgnoreCase))
+    (connectionString.Contains(
+        "Host=",
+        StringComparison.OrdinalIgnoreCase)
+        
+     ||
+        connectionString.StartsWith(
+            "postgresql://",
+            StringComparison.OrdinalIgnoreCase)
+     ||
+     connectionString.StartsWith(
+        "postgres://",
+        StringComparison.OrdinalIgnoreCase)))
     {
         // ------------------------------------------------
         // POSTGRESQL / NEON
