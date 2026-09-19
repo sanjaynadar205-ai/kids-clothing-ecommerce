@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Admin · Product Managers";
+
     var managerCount = (int)(ViewBag.ProductManagerCount ?? 0);
     var maxManagers = (int)(ViewBag.MaxProductManagers ?? 4);
 
@@ -20,13 +21,14 @@
 
             <h1>Admin Dashboard</h1>
 
-            <p>Manage store access and appoint up to 4 Product Managers.</p>
+            <p>Manage your store, orders and Product Manager access.</p>
         </div>
 
         <a asp-controller="Home"
            asp-action="Index"
            class="admin-back">
-            <i class="bi bi-arrow-left me-1"></i> Back to Store
+            <i class="bi bi-arrow-left me-1"></i>
+            Back to Store
         </a>
 
     </div>
@@ -45,47 +47,119 @@
         </div>
     }
 
+    <!-- ADMIN ACTIONS -->
+
+    <div class="admin-actions">
+
+        <a asp-controller="AdminOrders"
+           asp-action="Index"
+           class="admin-main-action">
+
+            <div class="admin-main-action-icon">
+                <i class="bi bi-receipt"></i>
+            </div>
+
+            <div>
+                <strong>Manage Orders</strong>
+                <span>View, process, update and cancel customer orders.</span>
+            </div>
+
+            <i class="bi bi-chevron-right admin-main-action-arrow"></i>
+
+        </a>
+
+        <a asp-controller="Products"
+           asp-action="Manage"
+           class="admin-main-action">
+
+            <div class="admin-main-action-icon">
+                <i class="bi bi-box-seam"></i>
+            </div>
+
+            <div>
+                <strong>Manage Products</strong>
+                <span>Add, edit, deactivate and manage store products.</span>
+            </div>
+
+            <i class="bi bi-chevron-right admin-main-action-arrow"></i>
+
+        </a>
+
+    </div>
+
+    <!-- STATISTICS -->
+
     <div class="admin-stats">
 
         <div class="admin-stat-card">
-            <span></span>
+
+            <span class="stat-icon">
+                <i class="bi bi-people"></i>
+            </span>
+
             <strong>@Model.Count()</strong>
+
             <small>Total Users</small>
+
         </div>
 
         <div class="admin-stat-card">
-            <span></span>
+
+            <span class="stat-icon">
+                <i class="bi bi-person-badge"></i>
+            </span>
+
             <strong>
                 @Model.Count(u =>
                     userRoles.ContainsKey(u.Id) &&
                     userRoles[u.Id].Contains("ProductManager"))
             </strong>
+
             <small>Product Managers</small>
+
         </div>
 
         <div class="admin-stat-card">
-            <span></span>
+
+            <span class="stat-icon">
+                <i class="bi bi-person"></i>
+            </span>
+
             <strong>
                 @Model.Count(u =>
                     userRoles.ContainsKey(u.Id) &&
                     userRoles[u.Id].Contains("Customer"))
             </strong>
+
             <small>Customers</small>
+
         </div>
 
     </div>
 
+    <!-- USER MANAGEMENT -->
+
     <div class="admin-card">
 
         <div class="admin-card-header d-flex justify-content-between align-items-start gap-3 flex-wrap">
+
             <div>
                 <h2>User Management</h2>
-                <p>Assign or remove Product Manager access. Customers cannot choose this role during registration.</p>
+
+                <p>
+                    Assign or remove Product Manager access.
+                    Customers cannot choose this role during registration.
+                </p>
             </div>
+
             <div class="manager-capacity">
+
                 <strong>@managerCount / @maxManagers</strong>
+
                 <span>Product Manager seats</span>
+
             </div>
+
         </div>
 
         <div class="admin-table-wrapper">
@@ -93,6 +167,7 @@
             <table class="admin-table">
 
                 <thead>
+
                     <tr>
                         <th>User</th>
                         <th>Email</th>
@@ -100,6 +175,7 @@
                         <th>Created</th>
                         <th>Action</th>
                     </tr>
+
                 </thead>
 
                 <tbody>
@@ -114,7 +190,9 @@
                     <tr>
 
                         <td>
+
                             <div class="user-cell">
+
                                 <div class="user-avatar">
                                     @user.FirstName.FirstOrDefault()
                                 </div>
@@ -124,7 +202,9 @@
                                         @user.FirstName @user.LastName
                                     </strong>
                                 </div>
+
                             </div>
+
                         </td>
 
                         <td>
@@ -132,12 +212,14 @@
                         </td>
 
                         <td>
+
                             @foreach (var role in roles)
                             {
                                 <span class="role-badge @role.ToLower()">
                                     @role
                                 </span>
                             }
+
                         </td>
 
                         <td>
@@ -149,7 +231,7 @@
                             @if (roles.Contains("Admin"))
                             {
                                 <span class="protected-label">
-                                     Protected
+                                    Protected
                                 </span>
                             }
                             else if (roles.Contains("ProductManager"))
@@ -165,7 +247,9 @@
 
                                     <button type="submit"
                                             class="admin-action remove">
+
                                         Remove Manager
+
                                     </button>
 
                                 </form>
@@ -184,7 +268,11 @@
                                     <button type="submit"
                                             class="admin-action assign"
                                             @(managerCount >= maxManagers ? "disabled" : null)>
-                                        @(managerCount >= maxManagers ? "Manager limit reached" : "Appoint Product Manager")
+
+                                        @(managerCount >= maxManagers
+                                            ? "Manager limit reached"
+                                            : "Appoint Product Manager")
+
                                     </button>
 
                                 </form>
@@ -204,6 +292,121 @@
     </div>
 
 </div>
+
 <style>
-.manager-capacity{display:flex;align-items:center;gap:9px;background:#f8f6f7;border:1px solid #ece8eb;border-radius:10px;padding:9px 12px}.manager-capacity strong{font-size:13px}.manager-capacity span{font-size:10px;color:#77727a}.admin-action:disabled{opacity:.45;cursor:not-allowed}.admin-stat-card span i{font-size:21px}
+
+.admin-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+}
+
+.admin-main-action {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #e7e3e6;
+    border-radius: 14px;
+    color: #171417;
+    text-decoration: none;
+    transition: .2s ease;
+    box-shadow: 0 4px 16px rgba(0,0,0,.04);
+}
+
+.admin-main-action:hover {
+    color: #171417;
+    transform: translateY(-2px);
+    border-color: #cfc8cc;
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+}
+
+.admin-main-action-icon {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: #f5f2f3;
+    font-size: 21px;
+}
+
+.admin-main-action div:nth-child(2) {
+    flex: 1;
+}
+
+.admin-main-action strong {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 4px;
+}
+
+.admin-main-action span {
+    display: block;
+    color: #77727a;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.admin-main-action-arrow {
+    color: #99939a;
+    font-size: 16px;
+}
+
+.manager-capacity {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: #f8f6f7;
+    border: 1px solid #ece8eb;
+    border-radius: 10px;
+    padding: 9px 12px;
+}
+
+.manager-capacity strong {
+    font-size: 13px;
+}
+
+.manager-capacity span {
+    font-size: 10px;
+    color: #77727a;
+}
+
+.admin-action:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+.stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-icon i {
+    font-size: 21px;
+}
+
+@@media (max-width: 768px) {
+
+    .admin-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-main-action {
+        padding: 16px;
+    }
+
+    .admin-main-action-icon {
+        width: 42px;
+        height: 42px;
+        min-width: 42px;
+    }
+
+}
+
 </style>
