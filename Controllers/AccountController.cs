@@ -1,6 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Net;
-using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -10,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using KidsWearStore.Services;
 
 namespace KidsWearStore.Controllers;
 
@@ -22,17 +21,20 @@ public class AccountController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IConfiguration _configuration;
+    private readonly IEmailService _emailService;
 
     public AccountController(
         ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IEmailService emailService)
     {
         _context = context;
         _userManager = userManager;
         _signInManager = signInManager;
         _configuration = configuration;
+        _emailService = emailService;
     }
 
     // =========================================================
@@ -940,70 +942,16 @@ public class AccountController : Controller
         ApplicationUser user)
     {
         if (user == null)
+        {
             throw new ArgumentNullException(
                 nameof(user));
+        }
 
         if (string.IsNullOrWhiteSpace(user.Email))
         {
             throw new InvalidOperationException(
                 "The user does not have a valid email address.");
         }
-
-
-        // -----------------------------------------------------
-        // Read SMTP configuration.
-        // -----------------------------------------------------
-
-        var host =
-            _configuration["Smtp:Host"];
-
-        var from =
-            _configuration["Smtp:From"];
-
-        var password =
-            _configuration["Smtp:Password"];
-
-
-        if (string.IsNullOrWhiteSpace(host))
-        {
-            throw new InvalidOperationException(
-                "SMTP host is not configured.");
-        }
-
-        if (string.IsNullOrWhiteSpace(from))
-        {
-            throw new InvalidOperationException(
-                "SMTP sender email is not configured.");
-        }
-
-        if (string.IsNullOrWhiteSpace(password))
-        {
-            throw new InvalidOperationException(
-                "SMTP password is not configured.");
-        }
-
-
-        var port =
-            int.TryParse(
-                _configuration["Smtp:Port"],
-                out var configuredPort)
-                ? configuredPort
-                : 587;
-
-
-        var enableSsl =
-            !string.Equals(
-                _configuration["Smtp:EnableSsl"],
-                "false",
-                StringComparison.OrdinalIgnoreCase);
-
-
-        var displayName =
-            _configuration["Smtp:DisplayName"];
-
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = "CrisKidsWear";
-
 
         // -----------------------------------------------------
         // Generate cryptographically secure 6-digit OTP.
@@ -1016,10 +964,8 @@ public class AccountController : Controller
                     1000000)
                 .ToString();
 
-
         var email =
             user.Email.Trim();
-
 
         var pending =
             new PendingRegistration
@@ -1043,74 +989,25 @@ public class AccountController : Controller
                 DevelopmentCode = code
             };
 
-
         // -----------------------------------------------------
         // Send the email FIRST.
         //
         // We intentionally do NOT save the pending session
-        // until SendMailAsync succeeds.
+        // until Resend successfully accepts the email.
         // -----------------------------------------------------
 
-        using var client =
-            new SmtpClient(
-                host,
-                port)
-            {
-                EnableSsl = enableSsl,
-
-                Credentials =
-                    new NetworkCredential(
-                        from,
-                        password),
-
-                DeliveryMethod =
-                    SmtpDeliveryMethod.Network,
-
-                Timeout = 30000
-            };
-
-
-        using var message =
-            new MailMessage
-            {
-                From =
-                    new MailAddress(
-                        from,
-                        displayName),
-
-                Subject =
-                    "CrisKidsWear email verification code",
-
-                Body =
-                    $"Your CrisKidsWear verification code is {code}." +
-                    Environment.NewLine +
-                    Environment.NewLine +
-                    "This code expires in 5 minutes." +
-                    Environment.NewLine +
-                    Environment.NewLine +
-                    "If you did not create a CrisKidsWear account, " +
-                    "you can safely ignore this email.",
-
-                IsBodyHtml = false
-            };
-
-
-        message.To.Add(email);
-
-
-        // This throws if Gmail/SMTP fails.
-        await client.SendMailAsync(
-            message);
-
+        await _emailService.SendVerificationOtpAsync(
+            email,
+            $"{user.FirstName} {user.LastName}".Trim(),
+            code);
 
         // -----------------------------------------------------
         // Only save OTP session after the email was successfully
-        // handed to the SMTP client.
+        // accepted by Resend.
         // -----------------------------------------------------
 
         SavePendingRegistration(
             pending);
-
 
         Console.WriteLine(
             $"Verification OTP sent successfully to {email}.");
