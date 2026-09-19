@@ -6,192 +6,427 @@
 
 <div class="admin-dashboard">
 
+    <!-- HEADER -->
     <div class="dashboard-header">
+
         <div>
+            <div class="eyebrow">
+                ADMINISTRATION
+            </div>
+
             <h1>Admin Dashboard</h1>
-            <p>Overview of your KidsWearStore business.</p>
+
+            <p>
+                Manage your CrisKidsWear store, orders, products and customers.
+            </p>
         </div>
 
         <div class="dashboard-actions">
+
             <a asp-controller="AdminOrders"
                asp-action="Index"
-               class="dashboard-btn">
-                 Manage Orders
+               class="dashboard-btn order-btn">
+
+                <i class="bi bi-receipt"></i>
+
+                <span>Manage Orders</span>
+
             </a>
 
             <a asp-controller="Products"
                asp-action="Index"
                class="dashboard-btn secondary">
-                 Manage Products
+
+                <i class="bi bi-box-seam"></i>
+
+                <span>Manage Products</span>
+
             </a>
+
         </div>
+
     </div>
 
-    <!-- MAIN STATISTICS -->
 
+    <!-- MAIN STATISTICS -->
     <div class="stats-grid">
 
-        <div class="stat-card">
-            <div class="stat-icon"></div>
+        <!-- TOTAL ORDERS -->
+        <a asp-controller="AdminOrders"
+           asp-action="Index"
+           class="stat-card stat-link">
+
+            <div class="stat-icon orders-icon">
+                <i class="bi bi-receipt"></i>
+            </div>
+
             <div>
                 <span>Total Orders</span>
                 <strong>@Model.TotalOrders</strong>
             </div>
-        </div>
 
+            <i class="bi bi-arrow-up-right stat-arrow"></i>
+
+        </a>
+
+
+        <!-- TOTAL SALES -->
         <div class="stat-card">
-            <div class="stat-icon"></div>
+
+            <div class="stat-icon sales-icon">
+                <i class="bi bi-currency-rupee"></i>
+            </div>
+
             <div>
                 <span>Total Sales</span>
-                <strong>₹@Model.TotalSales.ToString("N2")</strong>
+                <strong>
+                    ₹@Model.TotalSales.ToString("N2")
+                </strong>
             </div>
+
         </div>
 
-        <div class="stat-card">
-            <div class="stat-icon">⏳</div>
+
+        <!-- PENDING ORDERS -->
+        <a asp-controller="AdminOrders"
+           asp-action="Index"
+           asp-route-status="Pending"
+           class="stat-card stat-link">
+
+            <div class="stat-icon pending-icon">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+
             <div>
                 <span>Pending Orders</span>
                 <strong>@Model.PendingOrders</strong>
             </div>
-        </div>
 
+            <i class="bi bi-arrow-up-right stat-arrow"></i>
+
+        </a>
+
+
+        <!-- CUSTOMERS -->
         <div class="stat-card">
-            <div class="stat-icon"></div>
+
+            <div class="stat-icon customers-icon">
+                <i class="bi bi-people"></i>
+            </div>
+
             <div>
                 <span>Customers</span>
                 <strong>@Model.TotalCustomers</strong>
             </div>
+
         </div>
 
     </div>
 
-    <!-- SALES -->
 
+    <!-- SALES + STOCK -->
     <div class="section-grid">
 
+        <!-- SALES OVERVIEW -->
         <div class="dashboard-card">
+
             <div class="card-heading">
-                <h2>Sales Overview</h2>
+
+                <div>
+                    <div class="card-kicker">
+                        PERFORMANCE
+                    </div>
+
+                    <h2>Sales Overview</h2>
+                </div>
+
+                <i class="bi bi-graph-up-arrow heading-icon"></i>
+
             </div>
 
             <div class="sales-grid">
 
                 <div class="sales-item">
+
                     <span>Today</span>
-                    <strong>₹@Model.TodaySales.ToString("N2")</strong>
+
+                    <strong>
+                        ₹@Model.TodaySales.ToString("N2")
+                    </strong>
+
                 </div>
 
                 <div class="sales-item">
+
                     <span>This Month</span>
-                    <strong>₹@Model.MonthlySales.ToString("N2")</strong>
+
+                    <strong>
+                        ₹@Model.MonthlySales.ToString("N2")
+                    </strong>
+
                 </div>
 
                 <div class="sales-item">
+
                     <span>All Time</span>
-                    <strong>₹@Model.TotalSales.ToString("N2")</strong>
+
+                    <strong>
+                        ₹@Model.TotalSales.ToString("N2")
+                    </strong>
+
                 </div>
 
             </div>
+
         </div>
 
+
+        <!-- PRODUCT STOCK -->
         <div class="dashboard-card">
+
             <div class="card-heading">
-                <h2>Product Stock</h2>
+
+                <div>
+                    <div class="card-kicker">
+                        INVENTORY
+                    </div>
+
+                    <h2>Product Stock</h2>
+                </div>
 
                 <a asp-controller="Products"
-                   asp-action="Index">
-                    View Products →
+                   asp-action="Index"
+                   class="card-link">
+
+                    View Products
+                    <i class="bi bi-arrow-right"></i>
+
                 </a>
+
             </div>
 
             <div class="stock-grid">
 
                 <div>
+
                     <span>Total</span>
-                    <strong>@Model.TotalProducts</strong>
+
+                    <strong>
+                        @Model.TotalProducts
+                    </strong>
+
                 </div>
 
                 <div>
+
                     <span>Active</span>
-                    <strong>@Model.ActiveProducts</strong>
+
+                    <strong>
+                        @Model.ActiveProducts
+                    </strong>
+
                 </div>
 
                 <div class="warning">
+
                     <span>Low Stock</span>
-                    <strong>@Model.LowStockProducts</strong>
+
+                    <strong>
+                        @Model.LowStockProducts
+                    </strong>
+
                 </div>
 
                 <div class="danger">
+
                     <span>Out of Stock</span>
-                    <strong>@Model.OutOfStockProducts</strong>
+
+                    <strong>
+                        @Model.OutOfStockProducts
+                    </strong>
+
                 </div>
 
             </div>
+
         </div>
 
     </div>
 
-    <!-- ORDER STATUS -->
 
+    <!-- ORDER STATUS -->
     <div class="dashboard-card order-status-card">
 
         <div class="card-heading">
-            <h2>Order Status</h2>
+
+            <div>
+
+                <div class="card-kicker">
+                    ORDER PROCESS
+                </div>
+
+                <h2>Order Status</h2>
+
+            </div>
 
             <a asp-controller="AdminOrders"
-               asp-action="Index">
-                View All Orders →
+               asp-action="Index"
+               class="card-link">
+
+                Manage Orders
+                <i class="bi bi-arrow-right"></i>
+
             </a>
+
         </div>
+
 
         <div class="status-grid">
 
-            <div class="status-item">
+            <!-- PENDING -->
+            <a asp-controller="AdminOrders"
+               asp-action="Index"
+               asp-route-status="Pending"
+               class="status-item pending">
+
+                <div class="status-icon">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+
                 <span>Pending</span>
-                <strong>@Model.PendingOrders</strong>
-            </div>
 
-            <div class="status-item">
+                <strong>
+                    @Model.PendingOrders
+                </strong>
+
+            </a>
+
+
+            <!-- CONFIRMED -->
+            <a asp-controller="AdminOrders"
+               asp-action="Index"
+               asp-route-status="Confirmed"
+               class="status-item confirmed">
+
+                <div class="status-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+
                 <span>Confirmed</span>
-                <strong>@Model.ConfirmedOrders</strong>
-            </div>
 
-            <div class="status-item">
+                <strong>
+                    @Model.ConfirmedOrders
+                </strong>
+
+            </a>
+
+
+            <!-- PROCESSING -->
+            <a asp-controller="AdminOrders"
+               asp-action="Index"
+               asp-route-status="Processing"
+               class="status-item processing">
+
+                <div class="status-icon">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+
                 <span>Processing</span>
-                <strong>@Model.ProcessingOrders</strong>
-            </div>
 
-            <div class="status-item">
+                <strong>
+                    @Model.ProcessingOrders
+                </strong>
+
+            </a>
+
+
+            <!-- SHIPPED -->
+            <a asp-controller="AdminOrders"
+               asp-action="Index"
+               asp-route-status="Shipped"
+               class="status-item shipped">
+
+                <div class="status-icon">
+                    <i class="bi bi-truck"></i>
+                </div>
+
                 <span>Shipped</span>
-                <strong>@Model.ShippedOrders</strong>
-            </div>
 
-            <div class="status-item">
+                <strong>
+                    @Model.ShippedOrders
+                </strong>
+
+            </a>
+
+
+            <!-- DELIVERED -->
+            <a asp-controller="AdminOrders"
+               asp-action="Index"
+               asp-route-status="Delivered"
+               class="status-item delivered">
+
+                <div class="status-icon">
+                    <i class="bi bi-house-check"></i>
+                </div>
+
                 <span>Delivered</span>
-                <strong>@Model.DeliveredOrders</strong>
-            </div>
 
-            <div class="status-item cancelled">
+                <strong>
+                    @Model.DeliveredOrders
+                </strong>
+
+            </a>
+
+
+            <!-- CANCELLED -->
+            <a asp-controller="AdminOrders"
+               asp-action="Index"
+               asp-route-status="Cancelled"
+               class="status-item cancelled">
+
+                <div class="status-icon">
+                    <i class="bi bi-x-circle"></i>
+                </div>
+
                 <span>Cancelled</span>
-                <strong>@Model.CancelledOrders</strong>
-            </div>
+
+                <strong>
+                    @Model.CancelledOrders
+                </strong>
+
+            </a>
 
         </div>
 
     </div>
 
-    <!-- RECENT ORDERS -->
 
+    <!-- RECENT ORDERS -->
     <div class="dashboard-card">
 
         <div class="card-heading">
-            <h2>Recent Orders</h2>
+
+            <div>
+
+                <div class="card-kicker">
+                    LATEST ACTIVITY
+                </div>
+
+                <h2>Recent Orders</h2>
+
+            </div>
 
             <a asp-controller="AdminOrders"
-               asp-action="Index">
-                View All →
+               asp-action="Index"
+               class="card-link">
+
+                View All Orders
+                <i class="bi bi-arrow-right"></i>
+
             </a>
+
         </div>
+
 
         @if (Model.RecentOrders.Any())
         {
@@ -200,61 +435,143 @@
                 <table class="orders-table">
 
                     <thead>
+
                         <tr>
+
                             <th>Order</th>
+
                             <th>Customer</th>
+
                             <th>Date</th>
+
                             <th>Total</th>
+
                             <th>Payment</th>
+
                             <th>Status</th>
+
                             <th></th>
+
                         </tr>
+
                     </thead>
+
 
                     <tbody>
 
                     @foreach (var order in Model.RecentOrders)
                     {
+                        var statusClass =
+                            order.Status.ToString().ToLowerInvariant();
+
                         <tr>
 
+                            <!-- ORDER -->
                             <td>
-                                <strong>@order.OrderNumber</strong>
+
+                                <div class="order-number">
+                                    #@order.OrderNumber
+                                </div>
+
+                                <div class="order-id">
+                                    ID @order.Id
+                                </div>
+
                             </td>
 
+
+                            <!-- CUSTOMER -->
                             <td>
-                                @(order.User?.FirstName ?? "Customer")
-                                @(order.User?.LastName ?? "")
+
+                                <div class="customer-name">
+
+                                    @(order.User?.FirstName ?? order.CustomerName ?? "Customer")
+
+                                    @if (!string.IsNullOrWhiteSpace(order.User?.LastName))
+                                    {
+                                        @($" {order.User.LastName}")
+                                    }
+
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(order.CustomerEmail))
+                                {
+                                    <div class="customer-email">
+                                        @order.CustomerEmail
+                                    </div>
+                                }
+
                             </td>
 
+
+                            <!-- DATE -->
                             <td>
-                                @order.CreatedAt
-                                    .ToLocalTime()
-                                    .ToString("dd MMM yyyy, hh:mm tt")
+
+                                <div class="order-date">
+                                    @order.CreatedAt
+                                        .ToLocalTime()
+                                        .ToString("dd MMM yyyy")
+                                </div>
+
+                                <div class="order-time">
+                                    @order.CreatedAt
+                                        .ToLocalTime()
+                                        .ToString("hh:mm tt")
+                                </div>
+
                             </td>
 
+
+                            <!-- TOTAL -->
                             <td>
-                                <strong>
+
+                                <strong class="order-total">
                                     ₹@order.TotalAmount.ToString("N2")
                                 </strong>
+
                             </td>
 
+
+                            <!-- PAYMENT -->
                             <td>
-                                @order.PaymentStatus
+
+                                <div class="payment-method">
+                                    @order.PaymentMethod
+                                </div>
+
+                                <div class="payment-status">
+                                    @order.PaymentStatus
+                                </div>
+
                             </td>
 
+
+                            <!-- STATUS -->
                             <td>
-                                <span class="status-badge status-@order.Status.ToString().ToLower()">
+
+                                <span class="status-badge status-@statusClass">
+
                                     @order.Status
+
                                 </span>
+
                             </td>
 
-                            <td>
+
+                            <!-- VIEW -->
+                            <td class="text-end">
+
                                 <a asp-controller="AdminOrders"
                                    asp-action="Details"
-                                   asp-route-orderNumber="@order.OrderNumber"
+                                   asp-route-id="@order.Id"
                                    class="view-btn">
-                                    View
+
+                                    <i class="bi bi-eye"></i>
+
+                                    <span>View</span>
+
                                 </a>
+
                             </td>
 
                         </tr>
@@ -269,46 +586,120 @@
         else
         {
             <div class="empty-dashboard">
-                <div></div>
+
+                <div class="empty-icon">
+                    <i class="bi bi-receipt"></i>
+                </div>
+
                 <h3>No orders yet</h3>
-                <p>Orders will appear here when customers place them.</p>
+
+                <p>
+                    Orders will appear here when customers place them.
+                </p>
+
+                <a asp-controller="Products"
+                   asp-action="Index"
+                   class="empty-action">
+
+                    View Products
+
+                </a>
+
             </div>
         }
 
     </div>
 
-    <!-- QUICK ACTIONS -->
 
+    <!-- QUICK ACTIONS -->
     <div class="dashboard-card">
 
         <div class="card-heading">
-            <h2>Quick Actions</h2>
+
+            <div>
+
+                <div class="card-kicker">
+                    SHORTCUTS
+                </div>
+
+                <h2>Quick Actions</h2>
+
+            </div>
+
         </div>
+
 
         <div class="quick-actions">
 
+            <!-- ADD PRODUCT -->
             <a asp-controller="Products"
                asp-action="Create"
                class="quick-action">
-                <span></span>
-                <strong>Add Product</strong>
-                <small>Create a new product</small>
+
+                <span class="quick-icon">
+                    <i class="bi bi-plus-lg"></i>
+                </span>
+
+                <div>
+
+                    <strong>Add Product</strong>
+
+                    <small>
+                        Create a new product
+                    </small>
+
+                </div>
+
+                <i class="bi bi-arrow-right quick-arrow"></i>
+
             </a>
 
+
+            <!-- ORDERS -->
             <a asp-controller="AdminOrders"
                asp-action="Index"
                class="quick-action">
-                <span></span>
-                <strong>Orders</strong>
-                <small>Manage customer orders</small>
+
+                <span class="quick-icon">
+                    <i class="bi bi-receipt"></i>
+                </span>
+
+                <div>
+
+                    <strong>Manage Orders</strong>
+
+                    <small>
+                        Review and process customer orders
+                    </small>
+
+                </div>
+
+                <i class="bi bi-arrow-right quick-arrow"></i>
+
             </a>
 
+
+            <!-- USERS -->
             <a asp-controller="Admin"
                asp-action="Index"
                class="quick-action">
-                <span></span>
-                <strong>Users</strong>
-                <small>Manage users and roles</small>
+
+                <span class="quick-icon">
+                    <i class="bi bi-people"></i>
+                </span>
+
+                <div>
+
+                    <strong>Users & Roles</strong>
+
+                    <small>
+                        Manage users and Product Managers
+                    </small>
+
+                </div>
+
+                <i class="bi bi-arrow-right quick-arrow"></i>
+
             </a>
 
         </div>
@@ -317,392 +708,774 @@
 
 </div>
 
+
 <style>
-.admin-dashboard {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 30px 18px 60px;
-}
 
-.dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 28px;
-}
-
-.dashboard-header h1 {
-    margin: 0 0 6px;
-    font-size: 32px;
-    font-weight: 800;
-}
-
-.dashboard-header p {
-    margin: 0;
-    color: #71717a;
-}
-
-.dashboard-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.dashboard-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 11px 16px;
-    border-radius: 10px;
-    text-decoration: none;
-    background: #18181b;
-    color: white;
-    font-weight: 700;
-}
-
-.dashboard-btn:hover {
-    color: white;
-    opacity: .9;
-}
-
-.dashboard-btn.secondary {
-    background: #f4f4f5;
-    color: #18181b;
-    border: 1px solid #e4e4e7;
-}
-
-.dashboard-btn.secondary:hover {
-    color: #18181b;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 20px;
-}
-
-.stat-card {
-    background: white;
-    border: 1px solid #e4e4e7;
-    border-radius: 16px;
-    padding: 22px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    box-shadow: 0 5px 20px rgba(0,0,0,.04);
-}
-
-.stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 13px;
-    background: #f4f4f5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-}
-
-.stat-card span {
-    display: block;
-    color: #71717a;
-    font-size: 13px;
-    margin-bottom: 5px;
-}
-
-.stat-card strong {
-    display: block;
-    font-size: 22px;
-    color: #18181b;
-}
-
-.section-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 20px;
-}
-
-.dashboard-card {
-    background: white;
-    border: 1px solid #e4e4e7;
-    border-radius: 16px;
-    padding: 22px;
-    margin-bottom: 20px;
-    box-shadow: 0 5px 20px rgba(0,0,0,.04);
-}
-
-.card-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.card-heading h2 {
-    margin: 0;
-    font-size: 19px;
-    font-weight: 800;
-}
-
-.card-heading a {
-    color: #18181b;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.sales-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-}
-
-.sales-item {
-    background: #fafafa;
-    border: 1px solid #f0f0f0;
-    border-radius: 12px;
-    padding: 16px;
-}
-
-.sales-item span,
-.stock-grid span,
-.status-item span {
-    display: block;
-    color: #71717a;
-    font-size: 12px;
-    margin-bottom: 6px;
-}
-
-.sales-item strong {
-    font-size: 18px;
-}
-
-.stock-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-}
-
-.stock-grid > div {
-    padding: 14px;
-    background: #fafafa;
-    border-radius: 12px;
-}
-
-.stock-grid strong {
-    font-size: 20px;
-}
-
-.stock-grid .warning strong {
-    color: #b45309;
-}
-
-.stock-grid .danger strong {
-    color: #dc2626;
-}
-
-.status-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 10px;
-}
-
-.status-item {
-    background: #fafafa;
-    border-radius: 12px;
-    padding: 15px;
-}
-
-.status-item strong {
-    font-size: 21px;
-}
-
-.status-item.cancelled strong {
-    color: #dc2626;
-}
-
-.table-wrapper {
-    overflow-x: auto;
-}
-
-.orders-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 850px;
-}
-
-.orders-table th {
-    text-align: left;
-    font-size: 12px;
-    color: #71717a;
-    padding: 12px 10px;
-    border-bottom: 1px solid #e4e4e7;
-    white-space: nowrap;
-}
-
-.orders-table td {
-    padding: 14px 10px;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 13px;
-    white-space: nowrap;
-}
-
-.orders-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.view-btn {
-    display: inline-block;
-    padding: 7px 11px;
-    border-radius: 8px;
-    background: #18181b;
-    color: white;
-    text-decoration: none;
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.view-btn:hover {
-    color: white;
-    opacity: .9;
-}
-
-.status-badge {
-    display: inline-flex;
-    padding: 5px 9px;
-    border-radius: 999px;
-    background: #f4f4f5;
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.status-cancelled {
-    background: #fee2e2;
-    color: #b91c1c;
-}
-
-.status-delivered {
-    background: #dcfce7;
-    color: #15803d;
-}
-
-.status-shipped {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-.status-processing {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.status-confirmed {
-    background: #e0e7ff;
-    color: #4338ca;
-}
-
-.status-pending {
-    background: #f4f4f5;
-    color: #52525b;
-}
-
-.empty-dashboard {
-    text-align: center;
-    padding: 45px 20px;
-}
-
-.empty-dashboard > div {
-    font-size: 42px;
-}
-
-.empty-dashboard h3 {
-    margin: 10px 0 5px;
-}
-
-.empty-dashboard p {
-    color: #71717a;
-    margin: 0;
-}
-
-.quick-actions {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-}
-
-.quick-action {
-    display: block;
-    padding: 18px;
-    border: 1px solid #e4e4e7;
-    border-radius: 13px;
-    text-decoration: none;
-    color: #18181b;
-    transition: .2s;
-}
-
-.quick-action:hover {
-    border-color: #a1a1aa;
-    transform: translateY(-2px);
-    color: #18181b;
-}
-
-.quick-action span {
-    display: block;
-    font-size: 25px;
-    margin-bottom: 10px;
-}
-
-.quick-action strong {
-    display: block;
-    margin-bottom: 4px;
-}
-
-.quick-action small {
-    color: #71717a;
-}
-
-@@media (max-width: 900px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .admin-dashboard {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 34px 20px 70px;
     }
+
+
+    /* HEADER */
+
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 24px;
+        margin-bottom: 30px;
+    }
+
+    .eyebrow,
+    .card-kicker {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .14em;
+        color: #71717a;
+    }
+
+    .eyebrow {
+        margin-bottom: 8px;
+    }
+
+    .dashboard-header h1 {
+        margin: 0 0 7px;
+        font-size: 34px;
+        line-height: 1.1;
+        font-weight: 800;
+        letter-spacing: -.03em;
+        color: #18181b;
+    }
+
+    .dashboard-header p {
+        margin: 0;
+        color: #71717a;
+        font-size: 14px;
+    }
+
+
+    .dashboard-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+
+    .dashboard-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        min-height: 44px;
+        padding: 0 17px;
+        border-radius: 10px;
+        text-decoration: none;
+        background: #18181b;
+        color: #fff;
+        border: 1px solid #18181b;
+        font-size: 13px;
+        font-weight: 750;
+        transition: .18s ease;
+    }
+
+    .dashboard-btn:hover {
+        color: #fff;
+        background: #27272a;
+        border-color: #27272a;
+        transform: translateY(-1px);
+    }
+
+    .dashboard-btn.secondary {
+        background: #fff;
+        color: #18181b;
+        border-color: #e4e4e7;
+    }
+
+    .dashboard-btn.secondary:hover {
+        background: #f4f4f5;
+        color: #18181b;
+    }
+
+
+    /* STATISTICS */
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+
+    .stat-card {
+        position: relative;
+        min-height: 118px;
+        background: #fff;
+        border: 1px solid #e4e4e7;
+        border-radius: 16px;
+        padding: 21px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: 0 5px 20px rgba(0,0,0,.035);
+    }
+
+
+    .stat-link {
+        text-decoration: none;
+        color: inherit;
+        transition: .18s ease;
+    }
+
+    .stat-link:hover {
+        color: inherit;
+        border-color: #c4c4c9;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0,0,0,.07);
+    }
+
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        flex: 0 0 48px;
+        border-radius: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+
+    .orders-icon {
+        background: #f4f4f5;
+        color: #18181b;
+    }
+
+    .sales-icon {
+        background: #ecfdf5;
+        color: #047857;
+    }
+
+    .pending-icon {
+        background: #fffbeb;
+        color: #b45309;
+    }
+
+    .customers-icon {
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+
+
+    .stat-card span {
+        display: block;
+        color: #71717a;
+        font-size: 12px;
+        margin-bottom: 5px;
+    }
+
+
+    .stat-card strong {
+        display: block;
+        color: #18181b;
+        font-size: 22px;
+        line-height: 1.1;
+    }
+
+
+    .stat-arrow {
+        position: absolute;
+        top: 19px;
+        right: 19px;
+        color: #a1a1aa;
+        font-size: 14px;
+    }
+
+
+    /* CARDS */
 
     .section-grid {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
     }
 
-    .status-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
 
-@@media (max-width: 600px) {
-    .dashboard-header {
-        align-items: flex-start;
-        flex-direction: column;
+    .dashboard-card {
+        background: #fff;
+        border: 1px solid #e4e4e7;
+        border-radius: 16px;
+        padding: 22px;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,.035);
     }
 
-    .stats-grid {
-        grid-template-columns: 1fr;
+
+    .card-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 20px;
     }
+
+
+    .card-kicker {
+        margin-bottom: 5px;
+    }
+
+
+    .card-heading h2 {
+        margin: 0;
+        font-size: 19px;
+        font-weight: 800;
+        letter-spacing: -.02em;
+        color: #18181b;
+    }
+
+
+    .heading-icon {
+        color: #71717a;
+        font-size: 20px;
+    }
+
+
+    .card-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #18181b;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .card-link:hover {
+        color: #52525b;
+    }
+
+
+    /* SALES */
 
     .sales-grid {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
     }
+
+
+    .sales-item {
+        background: #fafafa;
+        border: 1px solid #f0f0f0;
+        border-radius: 12px;
+        padding: 16px;
+    }
+
+
+    .sales-item span,
+    .stock-grid span,
+    .status-item > span {
+        display: block;
+        color: #71717a;
+        font-size: 11px;
+        margin-bottom: 6px;
+    }
+
+
+    .sales-item strong {
+        font-size: 17px;
+        color: #18181b;
+    }
+
+
+    /* STOCK */
 
     .stock-grid {
-        grid-template-columns: repeat(2, 1fr);
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 9px;
     }
+
+
+    .stock-grid > div {
+        padding: 14px;
+        background: #fafafa;
+        border-radius: 11px;
+    }
+
+
+    .stock-grid strong {
+        font-size: 20px;
+        color: #18181b;
+    }
+
+
+    .stock-grid .warning strong {
+        color: #b45309;
+    }
+
+
+    .stock-grid .danger strong {
+        color: #dc2626;
+    }
+
+
+    /* ORDER STATUS */
+
+    .order-status-card {
+        margin-bottom: 20px;
+    }
+
 
     .status-grid {
-        grid-template-columns: repeat(2, 1fr);
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 9px;
     }
 
-    .quick-actions {
-        grid-template-columns: 1fr;
+
+    .status-item {
+        min-width: 0;
+        padding: 15px;
+        background: #fafafa;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        text-decoration: none;
+        color: #18181b;
+        transition: .18s ease;
     }
-}
+
+
+    .status-item:hover {
+        color: #18181b;
+        border-color: #d4d4d8;
+        transform: translateY(-2px);
+    }
+
+
+    .status-icon {
+        width: 31px;
+        height: 31px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        font-size: 14px;
+    }
+
+
+    .status-item.pending .status-icon {
+        background: #fef3c7;
+        color: #b45309;
+    }
+
+    .status-item.confirmed .status-icon {
+        background: #e0e7ff;
+        color: #4338ca;
+    }
+
+    .status-item.processing .status-icon {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .status-item.shipped .status-icon {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .status-item.delivered .status-icon {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-item.cancelled .status-icon {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+
+    .status-item strong {
+        display: block;
+        font-size: 21px;
+        color: #18181b;
+    }
+
+
+    /* TABLE */
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+
+    .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 900px;
+    }
+
+
+    .orders-table th {
+        text-align: left;
+        font-size: 11px;
+        font-weight: 750;
+        color: #71717a;
+        padding: 12px 10px;
+        border-bottom: 1px solid #e4e4e7;
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+
+    .orders-table td {
+        padding: 15px 10px;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 13px;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+
+    .orders-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+
+    .orders-table tbody tr {
+        transition: background .15s ease;
+    }
+
+
+    .orders-table tbody tr:hover {
+        background: #fafafa;
+    }
+
+
+    .order-number {
+        font-weight: 750;
+        color: #18181b;
+    }
+
+
+    .order-id,
+    .customer-email,
+    .order-time,
+    .payment-status,
+    .order-date {
+        color: #71717a;
+        font-size: 11px;
+    }
+
+
+    .order-id {
+        margin-top: 3px;
+    }
+
+
+    .customer-name {
+        font-weight: 650;
+        color: #18181b;
+    }
+
+
+    .customer-email {
+        margin-top: 3px;
+    }
+
+
+    .order-time {
+        margin-top: 3px;
+    }
+
+
+    .order-total {
+        color: #18181b;
+    }
+
+
+    .payment-method {
+        font-size: 12px;
+        font-weight: 650;
+        color: #18181b;
+    }
+
+
+    .payment-status {
+        margin-top: 3px;
+    }
+
+
+    .view-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 34px;
+        padding: 0 11px;
+        border-radius: 8px;
+        background: #18181b;
+        color: #fff;
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 750;
+        transition: .18s ease;
+    }
+
+
+    .view-btn:hover {
+        color: #fff;
+        background: #27272a;
+    }
+
+
+    /* STATUS BADGES */
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: #f4f4f5;
+        color: #52525b;
+        font-size: 10px;
+        font-weight: 750;
+    }
+
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+
+    .status-delivered {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+
+    .status-shipped {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+
+    .status-processing {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+
+    .status-confirmed {
+        background: #e0e7ff;
+        color: #4338ca;
+    }
+
+
+    .status-pending {
+        background: #f4f4f5;
+        color: #52525b;
+    }
+
+
+    /* EMPTY STATE */
+
+    .empty-dashboard {
+        text-align: center;
+        padding: 55px 20px;
+    }
+
+
+    .empty-icon {
+        width: 58px;
+        height: 58px;
+        margin: 0 auto 16px;
+        border-radius: 16px;
+        background: #f4f4f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: #71717a;
+    }
+
+
+    .empty-dashboard h3 {
+        margin: 0 0 6px;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+
+    .empty-dashboard p {
+        color: #71717a;
+        margin: 0 0 18px;
+        font-size: 13px;
+    }
+
+
+    .empty-action {
+        display: inline-flex;
+        padding: 9px 14px;
+        border-radius: 9px;
+        background: #18181b;
+        color: #fff;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+
+    .empty-action:hover {
+        color: #fff;
+        background: #27272a;
+    }
+
+
+    /* QUICK ACTIONS */
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+
+    .quick-action {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        min-width: 0;
+        padding: 16px;
+        border: 1px solid #e4e4e7;
+        border-radius: 13px;
+        text-decoration: none;
+        color: #18181b;
+        transition: .18s ease;
+    }
+
+
+    .quick-action:hover {
+        border-color: #c4c4c9;
+        transform: translateY(-2px);
+        color: #18181b;
+        box-shadow: 0 8px 20px rgba(0,0,0,.045);
+    }
+
+
+    .quick-icon {
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        border-radius: 11px;
+        background: #f4f4f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+    }
+
+
+    .quick-action strong {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 13px;
+    }
+
+
+    .quick-action small {
+        display: block;
+        color: #71717a;
+        font-size: 11px;
+        line-height: 1.4;
+    }
+
+
+    .quick-arrow {
+        margin-left: auto;
+        color: #a1a1aa;
+        font-size: 13px;
+    }
+
+
+    /* RESPONSIVE */
+
+    @@media (max-width: 1050px) {
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .status-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
+
+    }
+
+
+    @@media (max-width: 900px) {
+
+        .dashboard-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .section-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stock-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+    }
+
+
+    @@media (max-width: 600px) {
+
+        .admin-dashboard {
+            padding: 24px 14px 50px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 28px;
+        }
+
+        .dashboard-actions {
+            width: 100%;
+        }
+
+        .dashboard-btn {
+            flex: 1;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .sales-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .status-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .card-heading {
+            align-items: flex-start;
+        }
+
+    }
+
 </style>

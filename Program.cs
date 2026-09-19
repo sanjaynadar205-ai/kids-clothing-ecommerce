@@ -1,9 +1,7 @@
 using KidsWearStore.Data;
 using KidsWearStore.Models;
-using KidsWearStore.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Resend;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -85,35 +83,6 @@ builder.Services
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
-
-
-// ==========================================================
-// RESEND EMAIL SERVICE
-// ==========================================================
-
-builder.Services.AddOptions();
-
-builder.Services.AddHttpClient<ResendClient>();
-
-builder.Services.Configure<ResendClientOptions>(options =>
-{
-    var apiKey =
-        builder.Configuration["Resend:ApiKey"];
-
-    if (string.IsNullOrWhiteSpace(apiKey))
-    {
-        throw new InvalidOperationException(
-            "Resend:ApiKey is not configured.");
-    }
-
-    options.ApiToken = apiKey;
-});
-
-builder.Services.AddTransient<IResend, ResendClient>();
-
-builder.Services.AddTransient<
-    IEmailService,
-    ResendEmailService>();
 
 
 // ==========================================================
