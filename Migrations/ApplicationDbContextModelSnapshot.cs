@@ -138,7 +138,7 @@ namespace KidsWearStore.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Carts", (string)null);
+                    b.ToTable("Carts");
                 });
 
             modelBuilder.Entity("KidsWearStore.Models.CartItem", b =>
@@ -164,7 +164,7 @@ namespace KidsWearStore.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("CartItems", (string)null);
+                    b.ToTable("CartItems");
                 });
 
             modelBuilder.Entity("KidsWearStore.Models.Category", b =>
@@ -196,7 +196,7 @@ namespace KidsWearStore.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("KidsWearStore.Models.ContactMessage", b =>
@@ -236,7 +236,7 @@ namespace KidsWearStore.Migrations
 
                     b.HasIndex("CreatedAt");
 
-                    b.ToTable("ContactMessages", (string)null);
+                    b.ToTable("ContactMessages");
                 });
 
             modelBuilder.Entity("KidsWearStore.Models.Order", b =>
@@ -345,7 +345,7 @@ namespace KidsWearStore.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("KidsWearStore.Models.OrderItem", b =>
@@ -384,7 +384,7 @@ namespace KidsWearStore.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderItems", (string)null);
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("KidsWearStore.Models.Product", b =>
@@ -461,7 +461,7 @@ namespace KidsWearStore.Migrations
 
                     b.HasIndex("Name");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("KidsWearStore.Models.ProductImage", b =>
@@ -494,7 +494,7 @@ namespace KidsWearStore.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductImages", (string)null);
+                    b.ToTable("ProductImages");
                 });
 
             modelBuilder.Entity("KidsWearStore.Models.Wishlist", b =>
@@ -522,7 +522,26 @@ namespace KidsWearStore.Migrations
                     b.HasIndex("UserId", "ProductId")
                         .IsUnique();
 
-                    b.ToTable("Wishlists", (string)null);
+                    b.ToTable("Wishlists");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DataProtectionKeys");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

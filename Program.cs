@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using KidsWearStore.Data;
 using KidsWearStore.Models;
 using Microsoft.AspNetCore.Identity;
@@ -59,6 +61,17 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
             });
     }
 });
+
+// ==========================================================
+// DATA PROTECTION
+// ==========================================================
+
+builder.Services
+    .AddDataProtection()
+    .PersistKeysToDbContext<ApplicationDbContext>()
+    .SetApplicationName("CrisKidsWear");
+
+
 
 
 // ==========================================================
